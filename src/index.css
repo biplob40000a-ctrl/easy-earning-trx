@@ -1,0 +1,60 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
+  
+  /* Brand Colors */
+  --color-brand-primary: #FF0013; /* TRON Red */
+  --color-brand-gold: #FF353D; /* Lighter TRON Red for accents */
+  --color-brand-gold-dark: #cc000f;
+  
+  /* Dark Luxury Palette */
+  --color-bg-base: #0B0E14; /* Deep dark blue/black */
+  --color-bg-card: #151A23;
+  --color-bg-card-hover: #1E2532;
+  --color-border-card: #2A3342;
+  
+  /* Text */
+  --color-text-main: #F3F4F6;
+  --color-text-muted: #9CA3AF;
+  
+  /* Utils */
+  --animate-marquee: marquee 25s linear infinite;
+}
+
+@keyframes marquee {
+  0% { transform: translateX(100%); }
+  100% { transform: translateX(-100%); }
+}
+
+@layer base {
+  body {
+    @apply bg-[var(--color-bg-base)] text-[var(--color-text-main)] font-sans antialiased selection:bg-brand-primary selection:text-white pb-20 md:pb-0;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-border-card rounded-full;
+}
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-brand-primary;
+}
+
+/* Glassmorphism utility */
+.glass-panel {
+  @apply bg-[#151A23]/80 backdrop-blur-md border border-[#2A3342] shadow-[0_8px_32px_0_rgba(0,0,0,0.3)];
+}
+
+/* Gold Gradient text */
+.text-gradient-gold {
+  @apply bg-gradient-to-r from-brand-gold to-brand-primary bg-clip-text text-transparent;
+}
