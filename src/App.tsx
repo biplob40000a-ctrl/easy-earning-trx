@@ -3,10 +3,12 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { AppLayout, AdminLayout } from './components/Layout';
 import { lazy, Suspense } from 'react';
+import { store } from './lib/store';
 
 // Lazy load pages for better bundle chunking
 const Login = lazy(() => import('./pages/Login'));
@@ -27,6 +29,10 @@ const LoadingFallback = () => (
 );
 
 export default function App() {
+  useEffect(() => {
+    store.initFirebase();
+  }, []);
+
   return (
     <BrowserRouter>
       <AuthProvider>

@@ -1,8 +1,12 @@
 import { AppState, Notice, Transaction, User, VIPLevel, Product, Order } from '../types';
 import { generateId } from './utils';
+import { db } from './firebase';
+import { doc, getDoc, setDoc, onSnapshot, collection } from 'firebase/firestore';
 
 const STORE_KEY = 'easy_earning_trx_db';
+const FB_DOC_ID = 'main_state';
 
+// ... rest of the initial arrays ...
 const initialNotices: Notice[] = [
   { id: '1', text: 'Welcome to Easy Earning TRX! Join our Telegram for daily signals.', isActive: true, timestamp: Date.now() },
   { id: '2', text: 'VIP 3 upgrade now gives 10% extra daily bonus until the end of the month!', isActive: true, timestamp: Date.now() },
@@ -97,6 +101,18 @@ export const store = {
     const current = store.getState();
     const updated = { ...current, ...newState };
     localStorage.setItem(STORE_KEY, JSON.stringify(updated));
+    // Push to firebase asynchronously
+    setDoc(doc(db, 'state', FB_DOC_ID), updated).catch(e => console.error("Firebase sync error", e));
+  },
+
+  initFirebase: () => {
+    onSnapshot(doc(db, 'state', FB_DOC_ID), (snapshot) => {
+      if (snapshot.exists()) {
+        const data = snapshot.data() as AppState;
+        localStorage.setItem(STORE_KEY, JSON.stringify(data));
+        window.dispatchEvent(new Event('store_updated'));
+      }
+    });
   },
 
   // User methods
@@ -117,7 +133,7 @@ export const store = {
       createdAt: Date.now(),
       lastMiningDate: null,
       totalEarnings: 0,
-      balance: 10, // Sign up bonus
+      balance: 0, // Sign up bonus
       vipLevel: 0,
     };
     const state = store.getState();

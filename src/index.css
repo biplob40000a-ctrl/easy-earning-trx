@@ -28,6 +28,11 @@
   100% { transform: translateX(-100%); }
 }
 
+@keyframes shimmer {
+  0% { transform: translateX(-100%) skewX(-30deg); }
+  100% { transform: translateX(300%) skewX(-30deg); }
+}
+
 @layer base {
   body {
     @apply bg-[var(--color-bg-base)] text-[var(--color-text-main)] font-sans antialiased selection:bg-brand-primary selection:text-white pb-20 md:pb-0;

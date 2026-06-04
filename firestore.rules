@@ -1,0 +1,71 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isValidUser(data) {
+      return data.keys().hasAny(['username', 'role', 'balance']) &&
+             data.username is string && data.username.size() > 0 &&
+             data.role in ['user', 'admin'] &&
+             data.balance is number;
+    }
+
+    match /users/{userId} {
+      allow read: if true;
+      allow create: if true; // In a production app, tighten this
+      allow update: if true; // Optimistic sync
+      allow delete: if true;
+    }
+
+    match /transactions/{txId} {
+      allow read: if true;
+      allow create: if true;
+      allow update: if true;
+      allow delete: if true;
+    }
+
+    match /notices/{noticeId} {
+      allow read: if true;
+      allow create: if true;
+      allow update: if true;
+      allow delete: if true;
+    }
+
+    match /paymentMethods/{methodId} {
+      allow read: if true;
+      allow create: if true;
+      allow update: if true;
+      allow delete: if true;
+    }
+
+    match /products/{productId} {
+      allow read: if true;
+      allow create: if true;
+      allow update: if true;
+      allow delete: if true;
+    }
+
+    match /orders/{orderId} {
+      allow read: if true;
+      allow create: if true;
+      allow update: if true;
+      allow delete: if true;
+    }
+
+    match /state/{document=**} {
+      allow read: if true;
+      allow create: if true;
+      allow update: if true;
+      allow delete: if true;
+    }
+
+    match /config/{document=**} {
+      allow read: if true;
+      allow create: if true;
+      allow update: if true;
+      allow delete: if true;
+    }
+  }
+}

@@ -16,12 +16,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    const storedUserId = localStorage.getItem('active_user_id');
-    if (storedUserId) {
-      const state = store.getState();
-      const found = state.users.find(u => u.id === storedUserId);
-      if (found) setUser(found);
-    }
+    const handleStoreUpdate = () => {
+      const storedUserId = localStorage.getItem('active_user_id');
+      if (storedUserId) {
+        const state = store.getState();
+        const found = state.users.find(u => u.id === storedUserId);
+        if (found) {
+          setUser(found);
+        } else {
+           setUser(null);
+        }
+      } else {
+        setUser(null);
+      }
+    };
+
+    handleStoreUpdate();
+    window.addEventListener('store_updated', handleStoreUpdate);
+    return () => window.removeEventListener('store_updated', handleStoreUpdate);
   }, []);
 
   const login = (username: string, pass: string) => {

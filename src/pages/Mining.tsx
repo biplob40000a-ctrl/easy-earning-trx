@@ -4,6 +4,7 @@ import { store, VIP_LEVELS } from '../lib/store';
 import { formatTRX, cn } from '../lib/utils';
 import { Pickaxe, CheckCircle2, History as HistoryIcon, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import MiningBillboard from '../components/MiningBillboard';
 
 export default function Mining() {
   const { user, refreshUser } = useAuth();
@@ -109,98 +110,135 @@ export default function Mining() {
            <HistoryIcon size={20} />
          </button>
        </div>
+       
+       <MiningBillboard 
+         actionText={status === 'idle' ? 'START MINING' : status === 'claim' ? 'CLAIM REWARD' : 'ACTIVE NETWORK'} 
+         onClickOverride={() => {}} 
+       />
 
-       <div className="glass-panel p-8 rounded-[2.5rem] flex flex-col items-center relative overflow-hidden border-brand-primary/20">
+       <div className="glass-panel p-8 rounded-[2.5rem] flex flex-col items-center relative overflow-hidden border-brand-primary/20 bg-gradient-to-b from-[var(--color-bg-card)] to-[#111]">
          <div className="absolute top-[-50px] w-40 h-40 bg-brand-primary/20 blur-[60px] rounded-full pointer-events-none" />
          
-         <div className="text-sm font-medium text-brand-gold mb-2 border border-brand-gold/30 px-3 py-1 rounded-full bg-brand-gold/10">
+         <div className="text-sm font-medium text-brand-gold mb-2 border border-brand-gold/30 px-3 py-1 rounded-full bg-brand-gold/10 z-10">
            Current: {userVip.name}
          </div>
          
-         <div className="text-4xl font-bold mb-8">
+         <div className="text-4xl font-bold mb-8 z-10">
             <span className="text-transparent bg-clip-text bg-gradient-to-br from-brand-gold to-brand-primary">
               +{formatTRX(userVip.dailyIncome)}
             </span>
             <span className="text-lg text-text-muted">/day</span>
          </div>
 
-         <div className="relative w-48 h-48 flex items-center justify-center">
-           {status === 'mining' && (
-             <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 100 100">
-               <circle className="text-[var(--color-border-card)] stroke-current" strokeWidth="4" cx="50" cy="50" r="48" fill="none" />
-               <motion.circle 
-                 className="text-brand-primary stroke-current" 
-                 strokeWidth="4" 
-                 strokeLinecap="round" 
-                 cx="50" cy="50" r="48" 
-                 fill="none" 
-                 initial={{ strokeDasharray: "0 300" }}
-                 animate={{ strokeDasharray: `${progress * 3} 300` }}
-               />
-             </svg>
-           )}
-           
-           <motion.button
-              whileHover={status !== 'mining' && status !== 'done' ? { scale: 1.05 } : {}}
-              whileTap={status !== 'mining' && status !== 'done' ? { scale: 0.95 } : {}}
-              onClick={() => {
-                if (status === 'upgrade') {
-                  setSuccess(''); // trick to re-trigger if needed
-                  setTimeout(() => setSuccess('Please buy a VIP to start mining'), 100);
-                }
-                if (status === 'idle') handleStartMining();
-                if (status === 'claim') handleClaim();
-              }}
-              disabled={status === 'done' || status === 'mining'}
-              className={cn(
-                "w-40 h-40 rounded-full flex flex-col items-center justify-center gap-3 relative z-10 border-4 transition-all duration-500",
-                status === 'idle' 
-                  ? "bg-[var(--color-bg-base)] border-brand-primary shadow-[0_0_30px_rgba(255,90,0,0.5)] text-white hover:bg-brand-primary/10"
-                  : status === 'mining'
-                  ? "bg-[var(--color-bg-base)] border-brand-primary/30 text-brand-primary opacity-80"
-                  : status === 'claim'
-                  ? "bg-brand-primary border-brand-primary text-black shadow-[0_0_30px_rgba(255,90,0,0.7)]"
-                  : status === 'upgrade'
-                  ? "bg-[var(--color-bg-base)] border-brand-gold text-brand-gold shadow-[0_0_30px_rgba(234,179,8,0.3)] opacity-90"
-                  : "bg-[var(--color-bg-base)] border-[var(--color-border-card)] text-text-muted shadow-inner opacity-80"
+         <div className="relative w-64 h-64 flex items-center justify-center">
+            {status === 'mining' && (
+              <div className="absolute inset-x-0 bottom-4 top-0 flex flex-col items-center justify-center">
+                <div className="relative w-full h-full flex items-center justify-center">
+                  
+                  {/* Tron Diamond / Rock */}
+                  <motion.div 
+                    initial={{ scale: 1 }}
+                    animate={{ scale: [1, 0.95, 1] }} 
+                    transition={{ repeat: Infinity, duration: 1, repeatType: "mirror" }}
+                    className="absolute bottom-10 left-1/2 -translate-x-1/2"
+                  >
+                    <div className="w-20 h-20 bg-red-600/20 rotate-45 border-2 border-red-500 flex items-center justify-center shadow-[0_0_30px_rgba(255,0,0,0.5)]">
+                      <div className="w-10 h-10 bg-red-500 rotate-0 flex items-center justify-center">
+                        <span className="text-white font-bold transform -rotate-45">TRX</span>
+                      </div>
+                    </div>
+                  </motion.div>
+
+                  {/* Pickaxe */}
+                  <motion.div 
+                    className="absolute bottom-20 left-16 text-red-500 z-10 drop-shadow-[0_0_10px_rgba(255,0,0,1)]"
+                    animate={{ rotate: [-20, 60, -20] }}
+                    transition={{ repeat: Infinity, duration: 0.4, ease: "linear" }}
+                    style={{ transformOrigin: "bottom right" }}
+                  >
+                    <Pickaxe size={48} />
+                  </motion.div>
+
+                  {/* Flying TRX Coins */}
+                  <motion.div
+                    className="absolute bottom-12 right-12 text-xl font-bold rounded-full w-8 h-8 flex items-center justify-center border border-red-500 text-red-500 bg-[#111]"
+                    animate={{ y: [0, -80, -120], x: [0, 40, 80], opacity: [1, 1, 0], scale: [1, 1.5, 0.5], rotate: [0, 180, 360] }}
+                    transition={{ repeat: Infinity, duration: 0.6, ease: "easeOut" }}
+                  >
+                    T
+                  </motion.div>
+                  <motion.div
+                    className="absolute bottom-10 left-1/4 text-sm font-bold rounded-full w-6 h-6 flex items-center justify-center border border-red-500 text-red-500 bg-[#111]"
+                    animate={{ y: [0, -60, -100], x: [0, -30, -60], opacity: [1, 1, 0], scale: [0.8, 1.2, 0.5], rotate: [0, -180, -360] }}
+                    transition={{ repeat: Infinity, duration: 0.5, ease: "easeOut", delay: 0.2 }}
+                  >
+                    T
+                  </motion.div>
+                </div>
+                <div className="absolute top-0 w-full text-center">
+                  <span className="font-bold text-red-500 text-2xl bg-[#111] px-4 py-1 rounded-full border border-red-500/30 shadow-[0_0_15px_rgba(255,0,0,0.5)]">
+                    {progress}%
+                  </span>
+                </div>
+              </div>
+            )}
+            
+            {status !== 'mining' && (
+            <motion.button
+               whileHover={status !== 'done' ? { scale: 1.05 } : {}}
+               whileTap={status !== 'done' ? { scale: 0.95 } : {}}
+               onClick={() => {
+                 if (status === 'upgrade') {
+                   setSuccess(''); // trick to re-trigger if needed
+                   setTimeout(() => setSuccess('Please buy a VIP to start mining'), 100);
+                 }
+                 if (status === 'idle') handleStartMining();
+                 if (status === 'claim') handleClaim();
+               }}
+               disabled={status === 'done' || status === 'mining'}
+               className={cn(
+                 "w-48 h-48 rounded-full flex flex-col items-center justify-center gap-3 relative z-10 border-4 transition-all duration-500",
+                 status === 'idle' 
+                   ? "bg-[var(--color-bg-base)] border-brand-primary shadow-[0_0_30px_rgba(255,90,0,0.5)] text-white hover:bg-brand-primary/10"
+                   : status === 'claim'
+                   ? "bg-brand-primary border-brand-primary text-black shadow-[0_0_30px_rgba(255,90,0,0.7)]"
+                   : status === 'upgrade'
+                   ? "bg-[var(--color-bg-base)] border-brand-gold text-brand-gold shadow-[0_0_30px_rgba(234,179,8,0.3)] opacity-90"
+                   : "bg-[var(--color-bg-base)] border-[var(--color-border-card)] text-text-muted shadow-inner opacity-80"
+               )}
+            >
+              {status === 'idle' ? (
+                <>
+                  <Pickaxe size={48} className="text-brand-primary drop-shadow-[0_0_10px_rgba(255,0,0,0.8)]" />
+                  <span className="font-bold text-lg leading-tight uppercase mt-2 text-brand-primary">Start<br/>Mining</span>
+                </>
+              ) : status === 'claim' ? (
+                <>
+                  <CheckCircle2 size={40} className="text-black" />
+                  <span className="font-bold text-lg uppercase leading-tight text-center">Claim<br/>Reward</span>
+                </>
+              ) : status === 'upgrade' ? (
+                <>
+                  <Pickaxe className="opacity-50 text-brand-gold" size={48} />
+                  <span className="font-bold text-lg leading-tight uppercase text-center mt-2">Need<br/>VIP</span>
+                </>
+              ) : (
+                <>
+                  <CheckCircle2 size={48} className="text-green-500 opacity-50" />
+                  <span className="font-bold text-center leading-tight mt-2 opacity-50">Claimed<br/>Today</span>
+                </>
               )}
-           >
-             {status === 'mining' ? (
-               <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: "linear" }} className="flex flex-col items-center">
-                 <Pickaxe size={40} className="text-brand-primary mb-2" />
-                 <span className="font-bold text-brand-primary text-sm">{progress}%</span>
-               </motion.div>
-             ) : status === 'idle' ? (
-               <>
-                 <Pickaxe size={48} className="text-brand-primary" />
-                 <span className="font-bold text-lg leading-tight uppercase">Start<br/>Mining</span>
-               </>
-             ) : status === 'claim' ? (
-               <>
-                 <CheckCircle2 size={40} className="text-black" />
-                 <span className="font-bold text-lg uppercase leading-tight text-center">Claim<br/>Reward</span>
-               </>
-             ) : status === 'upgrade' ? (
-               <>
-                 <Pickaxe size={48} className="text-brand-gold" />
-                 <span className="font-bold text-lg leading-tight uppercase text-center">Need<br/>VIP</span>
-               </>
-             ) : (
-               <>
-                 <CheckCircle2 size={48} className="text-green-500" />
-                 <span className="font-bold text-center leading-tight">Claimed<br/>Today</span>
-               </>
-             )}
-           </motion.button>
-         </div>
+            </motion.button>
+            )}
+          </div>
 
          {success && (
-           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className={`mt-6 flex items-center justify-center text-center gap-2 px-4 py-2 rounded-xl ${status === 'upgrade' ? 'text-red-500 bg-red-500/10 border border-red-500/20' : 'text-green-500 bg-green-500/10 border border-green-500/20'}`}>
+           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className={`mt-6 flex items-center justify-center text-center gap-2 px-4 py-2 rounded-xl border relative z-10 ${status === 'upgrade' ? 'text-red-500 bg-red-500/10 border-red-500/20' : 'text-green-500 bg-green-500/10 border-green-500/20'}`}>
              {status !== 'upgrade' && <CheckCircle2 size={18} />} {success}
            </motion.div>
          )}
          
-         <p className="text-center text-sm text-text-muted mt-8">
+         <p className="text-center text-sm text-text-muted mt-8 relative z-10">
            Mining cycle resets every 24 hours at 00:00 UTC.
          </p>
        </div>
@@ -252,3 +290,4 @@ function Modal({ children, onClose, title }: { children: React.ReactNode, onClos
     </motion.div>
   );
 }
+

@@ -42,29 +42,40 @@ function HistoryModal({ onClose }: { onClose: () => void }) {
   );
 }
 
+import MiningBillboard from '../components/MiningBillboard';
+
 export default function Home() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const state = store.getState();
   const userVip = VIP_LEVELS.find(v => v.level === user?.vipLevel) || VIP_LEVELS[0];
-  const [dummyFeed, setDummyFeed] = useState<Transaction[]>([]);
+  const [fakeTrades, setFakeTrades] = useState<{id: string, type: 'buy'|'sell', price: string, amount: string, time: string}[]>([]);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
 
   useEffect(() => {
-    const generateDummy = () => {
-      const types = ['deposit', 'withdraw', 'reward'];
-      const feed = Array.from({length: 5}).map((_, i) => ({
-        id: `dummy-${i}`,
-        userId: `user***${Math.floor(Math.random() * 99)}`,
-        type: types[Math.floor(Math.random() * types.length)] as any,
-        amount: Math.floor(Math.random() * 500) + 10,
-        status: 'completed' as any,
-        timestamp: Date.now() - Math.floor(Math.random() * 60000)
-      }));
-      setDummyFeed(feed);
+    let currentPrice = 0.3326;
+    
+    const generateTrade = () => {
+      const type = Math.random() > 0.5 ? 'buy' : 'sell';
+      const priceChange = (Math.random() - (type === 'buy' ? 0.3 : 0.7)) * 0.0005;
+      currentPrice = currentPrice + priceChange;
+      
+      return {
+        id: `trade-${Date.now()}-${Math.random()}`,
+        type,
+        price: currentPrice.toFixed(4),
+        amount: (Math.random() * 5000 + 100).toFixed(2),
+        time: new Date().toLocaleTimeString([], { hour12: false })
+      };
     };
-    generateDummy();
-    const interval = setInterval(generateDummy, 8000);
+
+    // Initial trades
+    setFakeTrades(Array.from({ length: 6 }).map(generateTrade).reverse());
+
+    const interval = setInterval(() => {
+      setFakeTrades(prev => [generateTrade(), ...prev].slice(0, 6));
+    }, 2000);
+    
     return () => clearInterval(interval);
   }, []);
 
@@ -79,41 +90,8 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Animated Action Billboard */}
-      <div className="flex items-center gap-4 bg-gradient-to-r from-[var(--color-bg-card)] to-[#1a1210] border border-brand-primary/30 p-5 rounded-3xl relative overflow-hidden group">
-        <div className="w-16 h-16 shrink-0 relative z-10 flex items-center justify-center">
-           {/* Simple CSS animation for breaking a mountain */}
-           <div className="relative w-full h-full">
-              {/* Mountain */}
-              <div className="absolute bottom-2 left-2 w-12 h-12 bg-gray-800 rounded-t-xl rotate-45 border-t-2 border-l-2 border-brand-primary"></div>
-              {/* Hammer */}
-              <motion.div 
-                 animate={{ rotate: [0, -45, 0] }}
-                 transition={{ repeat: Infinity, duration: 0.8, ease: "linear" }}
-                 className="absolute -top-1 right-0 text-3xl drop-shadow-[0_0_10px_rgba(255,0,19,0.8)] origin-bottom-right"
-              >
-                🔨
-              </motion.div>
-              {/* Sparkles on hit */}
-              <motion.div
-                 animate={{ opacity: [0, 1, 0], scale: [0.5, 1.2, 0.5] }}
-                 transition={{ repeat: Infinity, duration: 0.8, ease: "linear", times: [0, 0.4, 0.8] }}
-                 className="absolute bottom-4 left-6 text-brand-gold font-bold text-xl drop-shadow-md"
-              >
-                ✨
-              </motion.div>
-           </div>
-        </div>
-        <div className="flex-1 relative z-10">
-          <div className="bg-brand-primary/10 rounded-xl p-3 border border-brand-primary/20 relative backdrop-blur-sm">
-            <div className="absolute -left-2 top-4 w-3 h-3 bg-brand-primary/10 rotate-45 border-l border-b border-brand-primary/20"></div>
-            <p className="text-sm font-medium text-white italic">
-              "We are mining non-stop! ✨<br/>
-              <span className="text-brand-gold font-bold">New Offer: Buy VIP today & get exclusive rewards!</span>"
-            </p>
-          </div>
-        </div>
-      </div>
+      {/* Animated TRON Red Theme Billboard with Mining Cat */}
+      <MiningBillboard />
 
       <motion.div 
          initial={{ scale: 0.95, opacity: 0 }} 
@@ -177,30 +155,73 @@ export default function Home() {
         </div>
       </Link>
 
+      {/* Official Partners / Supported Platforms */}
+      <div className="py-2">
+        <p className="text-center font-bold text-text-muted text-[10px] uppercase tracking-widest mb-4 flex items-center gap-2 justify-center">
+          <span className="h-[1px] w-8 bg-gradient-to-r from-transparent to-[var(--color-border-card)]"></span>
+          Supported Platforms
+          <span className="h-[1px] w-8 bg-gradient-to-l from-transparent to-[var(--color-border-card)]"></span>
+        </p>
+        <div className="flex justify-center gap-6 items-center">
+          <div className="flex items-center gap-1.5 opacity-60 grayscale hover:grayscale-0 hover:opacity-100 transition-all cursor-default">
+             <div className="w-4 h-4 bg-[#FCD535] flex items-center justify-center transform rotate-45">
+               <div className="w-1.5 h-1.5 bg-[#111]"></div>
+             </div>
+             <span className="font-bold text-white tracking-widest text-sm">BINANCE</span>
+          </div>
+
+          <div className="flex items-center gap-1 opacity-60 grayscale hover:grayscale-0 hover:opacity-100 transition-all cursor-default">
+             <div className="font-black text-white tracking-tighter text-xl italic">
+                BYB<span className="text-yellow-500">I</span>T
+             </div>
+          </div>
+
+          <div className="flex items-center gap-1 opacity-60 grayscale hover:grayscale-0 hover:opacity-100 transition-all cursor-default">
+             <div className="w-4 h-4 bg-[#FF060A] transform rotate-45 rounded-[2px]" style={{ clipPath: 'polygon(50% 0%, 0% 100%, 100% 100%)', transform: 'none', background: 'transparent', borderBottom: '16px solid #FF060A', borderLeft: '8px solid transparent', borderRight: '8px solid transparent' }}></div>
+             <span className="font-bold text-white tracking-wider text-sm">TRON</span>
+          </div>
+        </div>
+      </div>
+
       <div>
-        <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-          <Activity size={20} className="text-brand-primary" /> Live Activity
-        </h3>
-        <div className="glass-panel rounded-3xl p-2">
-          {dummyFeed.map((item, i) => (
-            <motion.div 
-              key={item.id + i}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="flex items-center justify-between p-3 border-b border-[var(--color-border-card)] last:border-0"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-[var(--color-bg-base)] flex items-center justify-center text-xs text-text-muted">
-                  {item.userId.substring(0,2)}..
-                </div>
-                <div>
-                  <div className="text-sm font-medium border border-transparent">User {item.userId}</div>
-                  <div className="text-xs text-text-muted capitalize">{item.type}</div>
-                </div>
-              </div>
-              <div className="font-bold text-brand-gold">+{formatTRX(item.amount)}</div>
-            </motion.div>
-          ))}
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-bold flex items-center gap-2">
+            <Activity size={20} className="text-brand-primary" /> Live Global Trading
+          </h3>
+          <span className="text-xs text-text-muted px-2 py-1 bg-[var(--color-bg-base)] rounded">TRX/USDT</span>
+        </div>
+        
+        <div className="glass-panel p-1 rounded-2xl overflow-hidden">
+         <div className="grid grid-cols-3 text-xs font-bold text-text-muted p-3 border-b border-[var(--color-border-card)]">
+            <div>Price</div>
+            <div className="text-right">Qty(TRX)</div>
+            <div className="text-right">Time</div>
+         </div>
+         <div className="flex flex-col relative h-[250px] overflow-hidden">
+            <div className="flex-1 w-full flex flex-col">
+              {fakeTrades.map((trade) => (
+                <motion.div 
+                  key={trade.id}
+                  initial={{ opacity: 0, x: -20, height: 0 }}
+                  animate={{ opacity: 1, x: 0, height: 'auto' }}
+                  className="grid grid-cols-3 text-sm p-3 border-b border-[var(--color-border-card)]/30 items-center font-mono"
+                >
+                  <div className={`font-bold flex items-center gap-1 ${trade.type === 'buy' ? 'text-green-500' : 'text-red-500'}`}>
+                    {trade.type === 'buy' ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
+                    {trade.price}
+                  </div>
+                  <div className="text-right text-gray-200">
+                    {trade.amount}
+                  </div>
+                  <div className="text-right text-text-muted text-xs">
+                    {trade.time}
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+            {/* Fade out at bottom */}
+            <div className="absolute bottom-0 left-0 w-full h-12 bg-gradient-to-t from-[var(--color-bg-card)] to-transparent pointer-events-none" />
+         </div>
         </div>
       </div>
       

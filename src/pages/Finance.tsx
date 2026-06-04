@@ -25,12 +25,15 @@ export default function Finance() {
 
   const selectedMethod = paymentMethods.find(m => m.id === selectedMethodId);
 
+  const [withdrawMethod, setWithdrawMethod] = useState('Binance');
+  const withdrawMethodsList = ['Binance', 'Bybit', 'Trust Wallet', 'Other TRC20 Wallet'];
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
     
     const val = parseFloat(amount);
-    if (isNaN(val) || val <= 0) return;
+    if (isNaN(val) || val < 10) return; // Minimum 10 TRX check
 
     if (!isDeposit && val > user.balance) {
       setMsg('Insufficient balance');
@@ -42,7 +45,6 @@ export default function Finance() {
 
     setTimeout(() => {
       if (!isDeposit) {
-        // Handle Withdraw deduction instantly for realism
         store.updateUser(user.id, { balance: user.balance - val });
       }
       
@@ -51,8 +53,8 @@ export default function Finance() {
         type: isDeposit ? 'deposit' : 'withdraw',
         amount: val,
         status: 'pending',
-        address: isDeposit ? undefined : address,
-        description: isDeposit ? `Awaiting network confirmation (${selectedMethod?.name || 'TRX'})` : 'Awaiting admin approval'
+        address: isDeposit ? undefined : `${withdrawMethod} - ${address}`,
+        description: isDeposit ? `Awaiting network confirmation (${selectedMethod?.name || 'TRX'})` : `Awaiting admin approval via ${withdrawMethod}`
       });
       
       refreshUser();
@@ -142,20 +144,42 @@ export default function Finance() {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {!isDeposit && (
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-text-muted px-1">Receiving TRC20 Address</label>
-            <div className="relative">
-              <Wallet className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted" size={20} />
-              <input
-                type="text"
-                placeholder="Enter TRC20 Address"
-                className="w-full bg-[var(--color-bg-card)] border border-[var(--color-border-card)] rounded-xl py-3.5 pl-12 pr-4 text-white focus:outline-none focus:border-brand-primary transition-all"
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                required={!isDeposit}
-              />
+          <>
+            <div className="space-y-2 mb-4">
+              <label className="text-sm font-medium text-text-muted px-1">Withdraw to Wallet/Exchange</label>
+              <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
+                {withdrawMethodsList.map(method => (
+                  <button
+                    key={method}
+                    type="button"
+                    onClick={() => setWithdrawMethod(method)}
+                    className={`px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap transition-all border ${
+                      withdrawMethod === method 
+                      ? 'bg-brand-primary text-white border-brand-primary shadow-lg shadow-brand-primary/20 scale-105' 
+                      : 'bg-[var(--color-bg-base)] text-text-muted border-[var(--color-border-card)] hover:border-brand-primary/50 hover:text-white'
+                    }`}
+                  >
+                    {method}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+            
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-text-muted px-1">Receiving {withdrawMethod} TRC20 Address</label>
+              <div className="relative">
+                <Wallet className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted" size={20} />
+                <input
+                  type="text"
+                  placeholder={`Enter ${withdrawMethod} Address (TRC20)`}
+                  className="w-full bg-[var(--color-bg-card)] border border-[var(--color-border-card)] rounded-xl py-3.5 pl-12 pr-4 text-white focus:outline-none focus:border-brand-primary transition-all"
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  required={!isDeposit}
+                />
+              </div>
+            </div>
+          </>
         )}
 
         <div className="space-y-2">
@@ -164,9 +188,9 @@ export default function Finance() {
             <div className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-brand-primary">TRX</div>
             <input
               type="number"
-              min="10"
+              min={isDeposit ? "1" : "10"}
               step="0.01"
-              placeholder="Min. 10 TRX"
+              placeholder={isDeposit ? "Min. 10 TRX" : "Min. 10 TRX"}
               className="w-full bg-[var(--color-bg-card)] border border-[var(--color-border-card)] rounded-xl py-3.5 pl-14 pr-4 text-white focus:outline-none focus:border-brand-primary transition-all text-lg font-bold"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
@@ -189,7 +213,7 @@ export default function Finance() {
           {isDeposit ? (
             <p>- Deposits may take 1 to 5 minutes to arrive in your balance.<br/>- Minimum deposit is 10 TRX.<br/>- If your deposit doesn't arrive within 10 minutes, please contact customer support.</p>
           ) : (
-            <p>- Withdrawals are processed within 24 hours.<br/>- A 5% handling fee may apply.<br/>- Minimum withdrawal is 10 TRX.<br/>- Ensure your TRC-20 address is correct.</p>
+            <p>- Withdrawals are processed within 24 hours.<br/>- A 5% handling fee may apply.<br/>- Minimum withdrawal is 10 TRX.<br/>- Ensure your {withdrawMethod} TRC-20 address is correct.</p>
           )}
         </div>
 

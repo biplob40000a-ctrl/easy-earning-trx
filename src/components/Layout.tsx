@@ -1,6 +1,7 @@
+import { useState, useEffect } from 'react';
 import { Navigate, Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { Home, Pickaxe, Crown, Users, User, LogOut, Shield } from 'lucide-react';
+import { Home, Pickaxe, Crown, Users, User, LogOut, Shield, Activity } from 'lucide-react';
 import { cn, formatTRX } from '../lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
 import { LiveFeed } from './LiveFeed';
@@ -8,6 +9,13 @@ import { LiveFeed } from './LiveFeed';
 export function AppLayout() {
   const { user, logout } = useAuth();
   const location = useLocation();
+  const [, setTick] = useState(0);
+
+  useEffect(() => {
+    const handler = () => setTick(t => t + 1);
+    window.addEventListener('store_updated', handler);
+    return () => window.removeEventListener('store_updated', handler);
+  }, []);
 
   if (!user) return <Navigate to="/login" replace />;
   if (user.role === 'admin') return <Navigate to="/admin" replace />;
@@ -21,9 +29,14 @@ export function AppLayout() {
   ];
 
   return (
-    <div className="min-h-screen bg-[var(--color-bg-base)] text-white flex flex-col">
+    <div className="min-h-screen bg-[var(--color-bg-base)] text-white flex flex-col pt-7 relative">
+      {/* Mobile Notch */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-7 bg-black rounded-b-3xl z-[100] flex items-center justify-end pr-4 pointer-events-none drop-shadow-md">
+         <div className="w-2.5 h-2.5 rounded-full bg-gray-800 shadow-inner"></div>
+      </div>
+
       {/* Top Header */}
-      <header className="sticky top-0 z-40 bg-[var(--color-bg-card)]/80 backdrop-blur-md border-b border-[var(--color-border-card)] px-4 py-3 flex items-center justify-between">
+      <header className="sticky top-7 z-40 bg-[var(--color-bg-card)]/80 backdrop-blur-md border-b border-[var(--color-border-card)] px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-brand-primary to-brand-gold flex items-center justify-center font-bold text-black drop-shadow-[0_0_8px_rgba(255,90,0,0.5)]">
             TRX
@@ -97,6 +110,14 @@ export function AppLayout() {
 
 export function AdminLayout() {
   const { user, logout } = useAuth();
+  const [, setTick] = useState(0);
+
+  useEffect(() => {
+    const handler = () => setTick(t => t + 1);
+    window.addEventListener('store_updated', handler);
+    return () => window.removeEventListener('store_updated', handler);
+  }, []);
+
   if (!user || user.role !== 'admin') return <Navigate to="/login" replace />;
 
   return (
