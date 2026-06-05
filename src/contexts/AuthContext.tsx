@@ -13,7 +13,15 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType>({} as AuthContextType);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(() => {
+    const storedUserId = localStorage.getItem('active_user_id');
+    if (storedUserId) {
+      const state = store.getState();
+      const found = state.users.find(u => u.id === storedUserId);
+      return found || null;
+    }
+    return null;
+  });
 
   useEffect(() => {
     const handleStoreUpdate = () => {

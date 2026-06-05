@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { Lock, User, Phone, Users } from 'lucide-react';
@@ -9,18 +9,28 @@ export default function Register() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [phone, setPhone] = useState('');
-  const [ref, setRef] = useState(params.get('ref') || '');
+  const [ref, setRef] = useState(params.get('ref') || localStorage.getItem('refCode') || '');
   const [error, setError] = useState('');
   const { register } = useAuth();
   const navigate = useNavigate();
 
+  useEffect(() => {
+    if (params.get('ref')) {
+      localStorage.setItem('refCode', params.get('ref') as string);
+    }
+  }, [params]);
+
   const handleRegister = (e: React.FormEvent) => {
     e.preventDefault();
-    if (username.length < 4) {
+    const cleanUsername = username.trim();
+    const cleanRef = ref.trim();
+    
+    if (cleanUsername.length < 4) {
       setError('Username must be at least 4 characters');
       return;
     }
-    if (register(username, password, phone, ref)) {
+    if (register(cleanUsername, password, phone.trim(), cleanRef)) {
+      localStorage.removeItem('refCode');
       navigate('/');
     } else {
       setError('Username already exists');

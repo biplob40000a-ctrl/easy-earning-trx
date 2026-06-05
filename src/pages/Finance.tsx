@@ -14,6 +14,7 @@ export default function Finance() {
 
   const [amount, setAmount] = useState('');
   const [address, setAddress] = useState('');
+  const [txId, setTxId] = useState('');
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState('');
   const [copied, setCopied] = useState(false);
@@ -33,7 +34,11 @@ export default function Finance() {
     if (!user) return;
     
     const val = parseFloat(amount);
-    if (isNaN(val) || val < 10) return; // Minimum 10 TRX check
+    if (isNaN(val) || val < (isDeposit ? 30 : 10)) return; // Minimum check
+    if (isDeposit && !txId.trim()) {
+      setMsg('Please enter the Transaction ID');
+      return;
+    }
 
     if (!isDeposit && val > user.balance) {
       setMsg('Insufficient balance');
@@ -54,7 +59,7 @@ export default function Finance() {
         amount: val,
         status: 'pending',
         address: isDeposit ? undefined : `${withdrawMethod} - ${address}`,
-        description: isDeposit ? `Awaiting network confirmation (${selectedMethod?.name || 'TRX'})` : `Awaiting admin approval via ${withdrawMethod}`
+        description: isDeposit ? `Awaiting network confirmation (${selectedMethod?.name || 'TRX'}). TXID: ${txId}` : `Awaiting admin approval via ${withdrawMethod}`
       });
       
       refreshUser();
@@ -188,9 +193,9 @@ export default function Finance() {
             <div className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-brand-primary">TRX</div>
             <input
               type="number"
-              min={isDeposit ? "1" : "10"}
+              min={isDeposit ? "30" : "10"}
               step="0.01"
-              placeholder={isDeposit ? "Min. 10 TRX" : "Min. 10 TRX"}
+              placeholder={isDeposit ? "Min. 30 TRX" : "Min. 10 TRX"}
               className="w-full bg-[var(--color-bg-card)] border border-[var(--color-border-card)] rounded-xl py-3.5 pl-14 pr-4 text-white focus:outline-none focus:border-brand-primary transition-all text-lg font-bold"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
@@ -208,10 +213,26 @@ export default function Finance() {
           </div>
         </div>
 
+        {isDeposit && (
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-text-muted px-1">Transaction ID (TXID)</label>
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Enter Transaction Hash/ID"
+                className="w-full bg-[var(--color-bg-card)] border border-[var(--color-border-card)] rounded-xl py-3.5 px-4 text-white focus:outline-none focus:border-brand-primary transition-all font-mono text-sm"
+                value={txId}
+                onChange={(e) => setTxId(e.target.value)}
+                required
+              />
+            </div>
+          </div>
+        )}
+
         <div className="text-xs text-text-muted mt-4 bg-[var(--color-bg-card)] border border-[var(--color-border-card)] p-3 rounded-lg">
           <p className="font-bold mb-1 text-brand-gold">📢 Notice:</p>
           {isDeposit ? (
-            <p>- Deposits may take 1 to 5 minutes to arrive in your balance.<br/>- Minimum deposit is 10 TRX.<br/>- If your deposit doesn't arrive within 10 minutes, please contact customer support.</p>
+            <p>- Deposits may take 1 to 5 minutes to arrive in your balance.<br/>- Minimum deposit is 30 TRX.<br/>- Please enter correct Transaction ID.</p>
           ) : (
             <p>- Withdrawals are processed within 24 hours.<br/>- A 5% handling fee may apply.<br/>- Minimum withdrawal is 10 TRX.<br/>- Ensure your {withdrawMethod} TRC-20 address is correct.</p>
           )}

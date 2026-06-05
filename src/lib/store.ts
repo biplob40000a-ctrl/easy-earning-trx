@@ -28,6 +28,9 @@ export const VIP_LEVELS: VIPLevel[] = [
   { level: 3, name: 'VIP 3', price: 1000, dailyIncome: 65, validityDays: 365, maxTasks: 15 },
   { level: 4, name: 'VIP 4', price: 3000, dailyIncome: 210, validityDays: 365, maxTasks: 20 },
   { level: 5, name: 'VIP 5', price: 10000, dailyIncome: 800, validityDays: 365, maxTasks: 30 },
+  { level: 6, name: 'VIP 6', price: 25000, dailyIncome: 2250, validityDays: 365, maxTasks: 40 },
+  { level: 7, name: 'VIP 7', price: 50000, dailyIncome: 5000, validityDays: 365, maxTasks: 50 },
+  { level: 8, name: 'VIP 8', price: 100000, dailyIncome: 12000, validityDays: 365, maxTasks: 60 },
 ];
 
 const initialPaymentMethods: PaymentMethod[] = [
@@ -76,7 +79,10 @@ export const store = {
         }
         if (!parsedState.orders) parsedState.orders = [];
         if (!parsedState.supportLink) parsedState.supportLink = 'https://t.me/easyearning_support';
-        if (!parsedState.vipLevels) parsedState.vipLevels = VIP_LEVELS;
+        if (!parsedState.vipLevels || parsedState.vipLevels.length < 9) {
+          parsedState.vipLevels = VIP_LEVELS;
+          localStorage.setItem(STORE_KEY, JSON.stringify(parsedState));
+        }
         if (!parsedState.paymentMethods) parsedState.paymentMethods = initialPaymentMethods;
         
         // Force update admin credentials if they have stale local storage

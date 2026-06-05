@@ -31,6 +31,12 @@ const LoadingFallback = () => (
 export default function App() {
   useEffect(() => {
     store.initFirebase();
+    // Global catch for referral codes
+    const params = new URLSearchParams(window.location.search);
+    const ref = params.get('ref');
+    if (ref) {
+      localStorage.setItem('refCode', ref);
+    }
   }, []);
 
   return (

@@ -4,9 +4,11 @@ import { store } from '../lib/store';
 import { formatTRX } from '../lib/utils';
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { useNavigate } from 'react-router-dom';
 
 export default function Profile() {
   const { user, logout, refreshUser } = useAuth();
+  const navigate = useNavigate();
   
   const [isEditing, setIsEditing] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
@@ -90,6 +92,9 @@ export default function Profile() {
 
       {/* Menu Options */}
       <div className="glass-panel rounded-3xl overflow-hidden">
+         {user.role === 'admin' && (
+           <MenuButton icon={<Shield className="text-red-500" />} label="Admin Dashboard" onClick={() => navigate('/admin')} />
+         )}
          <MenuButton icon={<Settings />} label="Edit Profile" onClick={() => setIsEditing(true)} />
          <MenuButton icon={<Shield />} label="Security Settings" onClick={() => setIsChangingPassword(true)} />
          <MenuButton icon={<History />} label="Financial Records" onClick={() => setIsHistoryOpen(true)} />

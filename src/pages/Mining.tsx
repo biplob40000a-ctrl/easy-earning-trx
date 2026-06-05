@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { store, VIP_LEVELS } from '../lib/store';
 import { formatTRX, cn } from '../lib/utils';
-import { Pickaxe, CheckCircle2, History as HistoryIcon, X } from 'lucide-react';
+import { Pickaxe, CheckCircle2, History as HistoryIcon, X, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import MiningBillboard from '../components/MiningBillboard';
 
@@ -10,14 +10,14 @@ export default function Mining() {
   const { user, refreshUser } = useAuth();
   
   // 'idle' = user can start mining
-  // 'mining' = mining in progress (fake progress bar)
+  // 'mining' = mining in progress (24 hours)
   // 'claim' = mining finished, user can claim reward
-  // 'done' = claimed for today
-  const [status, setStatus] = useState<'idle' | 'mining' | 'claim' | 'done' | 'upgrade'>('done');
+  // 'upgrade' = needs VIP
+  const [status, setStatus] = useState<'idle' | 'mining' | 'claim' | 'upgrade'>('idle');
 
   const [success, setSuccess] = useState('');
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
-  const [progress, setProgress] = useState(0);
+  const [timeLeft, setTimeLeft] = useState<number>(0);
 
   const vipLevelsInfo = store.getState().vipLevels || VIP_LEVELS;
   const userVip = vipLevelsInfo.find(v => v.level === user?.vipLevel) || vipLevelsInfo[0];
@@ -25,6 +25,24 @@ export default function Mining() {
   useEffect(() => {
     checkMiningStatus();
   }, [user]);
+
+  useEffect(() => {
+    let interval: any;
+    if (status === 'mining') {
+      interval = setInterval(() => {
+        if (!user || !user.lastMiningDate) return;
+        const diff = Date.now() - user.lastMiningDate;
+        const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000;
+        if (diff < TWENTY_FOUR_HOURS) {
+          setTimeLeft(TWENTY_FOUR_HOURS - diff);
+        } else {
+          setStatus('claim');
+          clearInterval(interval);
+        }
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [status, user]);
 
   const checkMiningStatus = () => {
     if (!user) return;
@@ -39,32 +57,26 @@ export default function Mining() {
       return;
     }
     
-    // Check if last mining was on a previous calendar day
-    const lastDate = new Date(user.lastMiningDate);
-    const currDate = new Date();
+    const diff = Date.now() - user.lastMiningDate;
+    const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000;
     
-    if (lastDate.toDateString() !== currDate.toDateString()) {
-      setStatus('idle');
+    if (diff < TWENTY_FOUR_HOURS) {
+      setStatus('mining');
+      setTimeLeft(TWENTY_FOUR_HOURS - diff);
     } else {
-      setStatus('done');
+      setStatus('claim');
     }
   };
 
   const handleStartMining = () => {
     if (!user || status !== 'idle') return;
-    setStatus('mining');
-    setProgress(0);
     
-    // Simulate mining progress over 3 seconds
-    let prog = 0;
-    const interval = setInterval(() => {
-      prog += 5;
-      setProgress(prog);
-      if (prog >= 100) {
-        clearInterval(interval);
-        setStatus('claim');
-      }
-    }, 150);
+    store.updateUser(user.id, {
+      lastMiningDate: Date.now()
+    });
+    refreshUser();
+    setStatus('mining');
+    setTimeLeft(24 * 60 * 60 * 1000);
   };
 
   const handleClaim = () => {
@@ -76,7 +88,7 @@ export default function Mining() {
     store.updateUser(user.id, {
       balance: newBalance,
       totalEarnings: newTotal,
-      lastMiningDate: Date.now()
+      lastMiningDate: null // Reset to null so they can start again immediately!
     });
     
     store.addTransaction({
@@ -88,8 +100,19 @@ export default function Mining() {
     });
     
     refreshUser();
-    setStatus('done');
+    setStatus('idle');
     setSuccess(`Successfully claimed ${formatTRX(userVip.dailyIncome)}!`);
+    
+    setTimeout(() => {
+      setSuccess('');
+    }, 3500);
+  };
+
+  const formatTime = (ms: number) => {
+    const hours = Math.floor(ms / (1000 * 60 * 60));
+    const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((ms % (1000 * 60)) / 1000);
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
   };
 
   const miningHistory = store.getState().transactions
@@ -175,9 +198,12 @@ export default function Mining() {
                     T
                   </motion.div>
                 </div>
-                <div className="absolute top-0 w-full text-center">
-                  <span className="font-bold text-red-500 text-2xl bg-[#111] px-4 py-1 rounded-full border border-red-500/30 shadow-[0_0_15px_rgba(255,0,0,0.5)]">
-                    {progress}%
+                <div className="absolute top-0 w-full text-center flex flex-col items-center gap-1">
+                  <span className="font-bold text-red-500 text-lg bg-[#111] px-4 py-1 rounded-full border border-red-500/30 shadow-[0_0_15px_rgba(255,0,0,0.5)]">
+                    Mining Active
+                  </span>
+                  <span className="text-white font-mono text-xl font-bold drop-shadow-md">
+                    {formatTime(timeLeft)}
                   </span>
                 </div>
               </div>
@@ -185,17 +211,16 @@ export default function Mining() {
             
             {status !== 'mining' && (
             <motion.button
-               whileHover={status !== 'done' ? { scale: 1.05 } : {}}
-               whileTap={status !== 'done' ? { scale: 0.95 } : {}}
+               whileHover={{ scale: 1.05 }}
+               whileTap={{ scale: 0.95 }}
                onClick={() => {
                  if (status === 'upgrade') {
-                   setSuccess(''); // trick to re-trigger if needed
+                   setSuccess(''); 
                    setTimeout(() => setSuccess('Please buy a VIP to start mining'), 100);
                  }
                  if (status === 'idle') handleStartMining();
                  if (status === 'claim') handleClaim();
                }}
-               disabled={status === 'done' || status === 'mining'}
                className={cn(
                  "w-48 h-48 rounded-full flex flex-col items-center justify-center gap-3 relative z-10 border-4 transition-all duration-500",
                  status === 'idle' 
@@ -204,7 +229,7 @@ export default function Mining() {
                    ? "bg-brand-primary border-brand-primary text-black shadow-[0_0_30px_rgba(255,90,0,0.7)]"
                    : status === 'upgrade'
                    ? "bg-[var(--color-bg-base)] border-brand-gold text-brand-gold shadow-[0_0_30px_rgba(234,179,8,0.3)] opacity-90"
-                   : "bg-[var(--color-bg-base)] border-[var(--color-border-card)] text-text-muted shadow-inner opacity-80"
+                   : "bg-[var(--color-bg-base)] border-[var(--color-border-card)] text-text-muted outline-none"
                )}
             >
               {status === 'idle' ? (
@@ -217,15 +242,10 @@ export default function Mining() {
                   <CheckCircle2 size={40} className="text-black" />
                   <span className="font-bold text-lg uppercase leading-tight text-center">Claim<br/>Reward</span>
                 </>
-              ) : status === 'upgrade' ? (
+              ) : status === 'upgrade' && (
                 <>
                   <Pickaxe className="opacity-50 text-brand-gold" size={48} />
                   <span className="font-bold text-lg leading-tight uppercase text-center mt-2">Need<br/>VIP</span>
-                </>
-              ) : (
-                <>
-                  <CheckCircle2 size={48} className="text-green-500 opacity-50" />
-                  <span className="font-bold text-center leading-tight mt-2 opacity-50">Claimed<br/>Today</span>
                 </>
               )}
             </motion.button>
@@ -239,7 +259,7 @@ export default function Mining() {
          )}
          
          <p className="text-center text-sm text-text-muted mt-8 relative z-10">
-           Mining cycle resets every 24 hours at 00:00 UTC.
+           Mine crypto. Earn ROI. Receive yield immediately after 24 hrs.
          </p>
        </div>
 
@@ -290,4 +310,5 @@ function Modal({ children, onClose, title }: { children: React.ReactNode, onClos
     </motion.div>
   );
 }
+
 

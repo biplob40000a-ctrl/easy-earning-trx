@@ -14,12 +14,13 @@ export default function Login() {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    const found = store.getUserByUsername(username);
+    const cleanUsername = username.trim();
+    const found = store.getUserByUsername(cleanUsername);
     if (found && found.isBlocked) {
       setError('Your account has been blocked.');
       return;
     }
-    if (login(username, password)) {
+    if (login(cleanUsername, password)) {
       navigate('/');
     } else {
       setError('Invalid username or password');
