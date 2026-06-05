@@ -41,6 +41,9 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     refreshData();
+    const handleUpdate = () => refreshData();
+    window.addEventListener('store_updated', handleUpdate);
+    return () => window.removeEventListener('store_updated', handleUpdate);
   }, []);
 
   const pendingDeposits = txs.filter(t => t.type === 'deposit' && t.status === 'pending');

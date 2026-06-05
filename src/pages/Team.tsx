@@ -1,12 +1,20 @@
 import { useAuth } from '../contexts/AuthContext';
 import { Users, Copy, CheckCircle2, TrendingUp } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { formatTRX } from '../lib/utils';
 import { store } from '../lib/store';
 
 export default function Team() {
   const { user } = useAuth();
   const [copied, setCopied] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  useEffect(() => {
+    const handleUpdate = () => setRefreshTrigger(prev => prev + 1);
+    window.addEventListener('store_updated', handleUpdate);
+    return () => window.removeEventListener('store_updated', handleUpdate);
+  }, []);
+
   // Default to a fallback if origin is not available or just use window.location.origin in browser
   const _origin = typeof window !== 'undefined' ? window.location.origin : 'https://easyearning.com';
   const refLink = `${_origin}/register?ref=${user?.username}`;
