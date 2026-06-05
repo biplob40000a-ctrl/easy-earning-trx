@@ -107,8 +107,44 @@ export const store = {
     const current = store.getState();
     const updated = { ...current, ...newState };
     localStorage.setItem(STORE_KEY, JSON.stringify(updated));
-    // Push to firebase asynchronously
-    setDoc(doc(db, 'state', FB_DOC_ID), updated).catch(e => console.error("Firebase sync error", e));
+    
+    // Push to firebase asynchronously with safe merging
+    getDoc(doc(db, 'state', FB_DOC_ID)).then(snapshot => {
+      let finalState = updated;
+      if (snapshot.exists()) {
+        const fbData = snapshot.data() as AppState;
+        
+        // Merge users
+        const userMap = new Map();
+        fbData.users?.forEach(u => userMap.set(u.id, u));
+        updated.users?.forEach(u => userMap.set(u.id, u));
+        
+        // Merge transactions
+        const txMap = new Map();
+        fbData.transactions?.forEach(t => txMap.set(t.id, t));
+        updated.transactions?.forEach(t => txMap.set(t.id, t));
+        
+        // Merge products
+        const prodMap = new Map();
+        fbData.products?.forEach(p => prodMap.set(p.id, p));
+        updated.products?.forEach(p => prodMap.set(p.id, p));
+        
+        // Merge orders
+        const orderMap = new Map();
+        fbData.orders?.forEach(o => orderMap.set(o.id, o));
+        updated.orders?.forEach(o => orderMap.set(o.id, o));
+
+        finalState = {
+          ...fbData,
+          ...newState, // Only overwrite top-level keys that were explicitly changed in this setState call!
+          users: Array.from(userMap.values()),
+          transactions: Array.from(txMap.values()).sort((a,b) => b.timestamp - a.timestamp),
+          products: Array.from(prodMap.values()),
+          orders: Array.from(orderMap.values()).sort((a,b) => b.timestamp - a.timestamp),
+        };
+      }
+      return setDoc(doc(db, 'state', FB_DOC_ID), finalState);
+    }).catch(e => console.error("Firebase sync error", e));
   },
 
   initFirebase: () => {

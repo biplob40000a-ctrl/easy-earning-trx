@@ -60,13 +60,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const register = (username: string, pass: string, phone: string, ref: string) => {
     if (store.getUserByUsername(username)) return false;
     
+    // Admin default referral code
+    const actualRef = ref || 'biplob122';
+
     const newUser = store.addUser({
       username,
       password: pass,
       phone,
       role: 'user',
       trc20Address: '',
-      referrerId: ref || null
+      referrerId: actualRef
     });
     
     setUser(newUser);
