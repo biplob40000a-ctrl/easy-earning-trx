@@ -13,8 +13,14 @@ export default function Login() {
   const [error, setError] = useState('');
   const [msg, setMsg] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { login } = useAuth();
+  const { login, user } = useAuth();
   const navigate = useNavigate();
+
+  React.useEffect(() => {
+    if (user) {
+      navigate(user.role === 'admin' ? '/admin' : '/');
+    }
+  }, [user, navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,7 +32,7 @@ export default function Login() {
     // Attempt authentication via Firebase
     try {
       await login(cleanEmail, password);
-      navigate('/');
+      // Removed navigate from here, relying on useEffect
     } catch (e: any) {
       if (e.code === 'auth/invalid-credential' || e.code === 'auth/user-not-found' || e.code === 'auth/wrong-password') {
         setError('Invalid email or password');

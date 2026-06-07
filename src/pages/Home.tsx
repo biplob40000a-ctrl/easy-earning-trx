@@ -48,7 +48,7 @@ export default function Home() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const state = store.getState();
-  const userVip = VIP_LEVELS.find(v => v.level === user?.vipLevel) || VIP_LEVELS[0];
+  const userVip = state.vipLevels?.find(v => v.level === user?.vipLevel) || state.vipLevels?.[0] || VIP_LEVELS[0];
   const [fakeTrades, setFakeTrades] = useState<{id: string, type: 'buy'|'sell', price: string, amount: string, time: string}[]>([]);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
 

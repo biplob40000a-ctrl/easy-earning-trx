@@ -102,7 +102,7 @@ export default function VIP() {
                    <Check size={16} className="text-green-500" /> Validity: {vip.validityDays} Days
                  </div>
                  <div className="flex items-center gap-2 text-sm text-text-muted">
-                   <Check size={16} className="text-green-500" /> Daily Tasks: {vip.maxTasks}
+                   <Check size={16} className="text-green-500" /> Daily Mining Included
                  </div>
                  <div className="flex items-center gap-2 text-sm text-text-muted">
                    <Check size={16} className="text-green-500" /> Instant Withdrawal

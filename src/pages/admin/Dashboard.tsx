@@ -436,7 +436,7 @@ export default function AdminDashboard() {
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <StatCard icon={<Users />} label="Total Users" value={users.length.toString()} color="text-blue-500" bg="bg-blue-500/10" />
-            <StatCard icon={<CreditCard />} label="Total Deposits" value={formatTRX(store.getState().systemBalance)} color="text-green-500" bg="bg-green-500/10" />
+            <StatCard icon={<CreditCard />} label="Total Deposits" value={formatTRX(txs.filter(t => t.type === 'deposit' && t.status === 'completed').reduce((acc, tx) => acc + tx.amount, 0))} color="text-green-500" bg="bg-green-500/10" />
             <StatCard icon={<Activity />} label="Pending Deposits" value={pendingDeposits.length.toString()} color="text-brand-primary" bg="bg-brand-primary/10" />
             <StatCard icon={<Activity />} label="Pending Withdraws" value={pendingWithdraws.length.toString()} color="text-red-500" bg="bg-red-500/10" />
           </div>
