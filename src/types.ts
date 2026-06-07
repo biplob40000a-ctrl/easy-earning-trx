@@ -1,18 +1,18 @@
 export type Role = 'user' | 'admin';
 
 export interface User {
-  id: string;
+  id: string; // Will align with Firebase UID
+  email: string;
   username: string;
-  password?: string; // Stored just for mock DB simulation
   phone: string;
   role: Role;
   balance: number;
   totalEarnings: number;
-  vipLevel: number; // 0 = free, 1-5 = VIP
+  vipLevel: number;
   trc20Address: string;
   referrerId: string | null;
   createdAt: number;
-  lastMiningDate: number | null; // For tracking daily mining
+  lastMiningDate: number | null;
   isBlocked?: boolean;
 }
 
@@ -25,7 +25,7 @@ export interface VIPLevel {
   maxTasks: number;
 }
 
-export type TransactionType = 'deposit' | 'withdraw' | 'mining' | 'reward' | 'purchase' | 'shop_order';
+export type TransactionType = 'deposit' | 'withdraw' | 'mining' | 'reward' | 'purchase' | 'shop_order' | 'stake' | 'stake_reward';
 export type TransactionStatus = 'pending' | 'approved' | 'rejected' | 'completed';
 
 export interface Transaction {
@@ -37,6 +37,18 @@ export interface Transaction {
   timestamp: number;
   description?: string;
   address?: string; // For withdrawals
+}
+
+export interface StakeRecord {
+  id: string;
+  userId: string;
+  amount: number;
+  durationMonths: number;
+  interestRate: number;
+  expectedReturn: number;
+  startDate: number;
+  endDate: number;
+  status: 'active' | 'completed';
 }
 
 export interface Notice {
@@ -85,4 +97,5 @@ export interface AppState {
   supportLink?: string;
   vipLevels?: VIPLevel[];
   paymentMethods?: PaymentMethod[];
+  stakes?: StakeRecord[];
 }

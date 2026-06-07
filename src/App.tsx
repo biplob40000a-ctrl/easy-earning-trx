@@ -19,6 +19,7 @@ const VIP = lazy(() => import('./pages/VIP'));
 const Team = lazy(() => import('./pages/Team'));
 const Profile = lazy(() => import('./pages/Profile'));
 const Shop = lazy(() => import('./pages/Shop'));
+const Staking = lazy(() => import('./pages/Staking'));
 const Finance = lazy(() => import('./pages/Finance')); // Combine recharge/withdraw here for simplicity
 const AdminDashboard = lazy(() => import('./pages/admin/Dashboard'));
 
@@ -60,6 +61,7 @@ export default function App() {
               <Route path="vip" element={<VIP />} />
               <Route path="team" element={<Team />} />
               <Route path="shop" element={<Shop />} />
+              <Route path="stake" element={<Staking />} />
               <Route path="finance/:type" element={<Finance />} />
               <Route path="profile" element={<Profile />} />
             </Route>

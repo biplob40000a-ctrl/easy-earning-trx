@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
-import { Lock, User, Phone, Users } from 'lucide-react';
+import { Lock, User, Phone, Users, Mail } from 'lucide-react';
 import { motion } from 'motion/react';
 
 export default function Register() {
   const [params] = useSearchParams();
+  const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [phone, setPhone] = useState('');
   const [ref, setRef] = useState(params.get('ref') || localStorage.getItem('refCode') || '');
   const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { register } = useAuth();
   const navigate = useNavigate();
 
@@ -20,21 +22,35 @@ export default function Register() {
     }
   }, [params]);
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
+    const cleanEmail = email.trim();
     const cleanUsername = username.trim();
     const cleanRef = ref.trim();
     
     if (cleanUsername.length < 4) {
       setError('Username must be at least 4 characters');
+      setIsSubmitting(false);
       return;
     }
-    if (register(cleanUsername, password, phone.trim(), cleanRef)) {
+    
+    try {
+      await register(cleanEmail, cleanUsername, password, phone.trim(), cleanRef);
       localStorage.removeItem('refCode');
       navigate('/');
-    } else {
-      setError('Username already exists');
+    } catch (e: any) {
+      if (e.code === 'auth/email-already-in-use') {
+        setError('This email is already in use. Try logging in.');
+      } else if (e.code === 'auth/weak-password') {
+        setError('Password is too weak. It must be at least 6 characters.');
+      } else if (e.code === 'auth/invalid-email') {
+        setError('The email address is not valid.');
+      } else {
+        setError(e.message || 'Failed to create account.');
+      }
     }
+    setIsSubmitting(false);
   };
 
   return (
@@ -56,6 +72,18 @@ export default function Register() {
         )}
 
         <form onSubmit={handleRegister} className="space-y-4">
+          <div className="relative">
+            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted" size={20} />
+            <input
+              type="email"
+              placeholder="Email address"
+              className="w-full bg-[var(--color-bg-base)] border border-[var(--color-border-card)] rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-brand-primary"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
+
           <div className="relative">
             <User className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted" size={20} />
             <input
@@ -105,9 +133,10 @@ export default function Register() {
 
           <button
             type="submit"
-            className="w-full bg-gradient-to-r from-brand-primary to-brand-gold text-black font-bold py-3.5 rounded-xl hover:opacity-90 active:scale-[0.98] transition-all shadow-[0_0_20px_rgba(255,90,0,0.3)] mt-4"
+            disabled={isSubmitting}
+            className="w-full bg-gradient-to-r from-brand-primary to-brand-gold text-black font-bold py-3.5 rounded-xl hover:opacity-90 active:scale-[0.98] transition-all shadow-[0_0_20px_rgba(255,90,0,0.3)] mt-4 disabled:opacity-50"
           >
-            Create Account
+            {isSubmitting ? 'Creating...' : 'Create Account'}
           </button>
         </form>
 

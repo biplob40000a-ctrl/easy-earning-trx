@@ -1,97 +1,139 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User } from '../types';
+import { User as AppUser } from '../types';
 import { store } from '../lib/store';
+import { auth, db } from '../lib/firebase';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut as fbSignOut, onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 interface AuthContextType {
-  user: User | null;
-  login: (username: string, pass: string) => boolean;
-  register: (username: string, pass: string, phone: string, ref: string) => boolean;
-  logout: () => void;
-  refreshUser: () => void;
+  user: AppUser | null;
+  fbUser: FirebaseUser | null;
+  login: (email: string, pass: string) => Promise<boolean>;
+  register: (email: string, username: string, pass: string, phone: string, ref: string) => Promise<boolean>;
+  logout: () => Promise<void>;
+  loading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType>({} as AuthContextType);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(() => {
-    const storedUserId = localStorage.getItem('active_user_id');
-    if (storedUserId) {
-      const state = store.getState();
-      const found = state.users.find(u => u.id === storedUserId);
-      return found || null;
-    }
-    return null;
-  });
+  const [fbUser, setFbUser] = useState<FirebaseUser | null>(null);
+  const [user, setUser] = useState<AppUser | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const handleStoreUpdate = () => {
-      const storedUserId = localStorage.getItem('active_user_id');
-      if (storedUserId) {
-        const state = store.getState();
-        const found = state.users.find(u => u.id === storedUserId);
-        if (found) {
-          setUser(found);
+    const unsub = onAuthStateChanged(auth, async (firebaseUser) => {
+      setFbUser(firebaseUser);
+      if (firebaseUser) {
+        // Init subscriptions for this user
+        store.initFirebase(firebaseUser.uid);
+        
+        // Fetch user data directly
+        const docRef = doc(db, 'users', firebaseUser.uid);
+        const snapshot = await getDoc(docRef);
+        if (snapshot.exists()) {
+           const userData = snapshot.data() as AppUser;
+           if ((firebaseUser.email === 'biplob40000a@gmail.com' || firebaseUser.email === 'admin@easyearning.com') && userData.role !== 'admin') {
+             userData.role = 'admin';
+             await setDoc(docRef, { role: 'admin' }, { merge: true });
+           }
+           setUser(userData);
         } else {
-           setUser(null);
+           // Admin fallback or created via another means
+           if (firebaseUser.email === 'biplob40000a@gmail.com' || firebaseUser.email === 'admin@easyearning.com') {
+             const adminUser: AppUser = {
+               id: firebaseUser.uid,
+               email: firebaseUser.email || '',
+               username: 'Admin',
+               phone: '000000000',
+               role: 'admin',
+               balance: 999999,
+               totalEarnings: 999999,
+               vipLevel: 5,
+               trc20Address: '',
+               referrerId: null,
+               createdAt: Date.now(),
+               lastMiningDate: null,
+             };
+             await setDoc(docRef, adminUser);
+             setUser(adminUser);
+           }
         }
       } else {
         setUser(null);
+        // Clear local storage / subscriptions
+        store.clearUserSubscriptions();
+      }
+      setLoading(false);
+    });
+
+    const handleStoreUpdate = () => {
+      if (fbUser) {
+        const currentUserData = store.getState().users.find(u => u.id === fbUser.uid);
+        if (currentUserData) {
+          setUser(currentUserData);
+        }
       }
     };
 
-    handleStoreUpdate();
     window.addEventListener('store_updated', handleStoreUpdate);
-    return () => window.removeEventListener('store_updated', handleStoreUpdate);
-  }, []);
 
-  const login = (username: string, pass: string) => {
-    const found = store.getUserByUsername(username);
-    if (found && found.password === pass) {
-      if (found.isBlocked) {
-        return false; // Or throw an error detailing they are blocked
-      }
-      setUser(found);
-      localStorage.setItem('active_user_id', found.id);
+    return () => {
+      unsub();
+      window.removeEventListener('store_updated', handleStoreUpdate);
+    };
+  }, [fbUser]);
+
+  const login = async (email: string, pass: string) => {
+    try {
+      await signInWithEmailAndPassword(auth, email, pass);
       return true;
+    } catch (e: any) {
+      console.error(e);
+      throw e;
     }
-    return false;
   };
 
-  const register = (username: string, pass: string, phone: string, ref: string) => {
-    if (store.getUserByUsername(username)) return false;
-    
-    // Admin default referral code
-    const actualRef = ref || 'biplob122';
+  const register = async (email: string, username: string, pass: string, phone: string, ref: string) => {
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
+      const uid = userCredential.user.uid;
+      const actualRef = ref || 'admin';
+      
+      const isAdminEmail = email === 'biplob40000a@gmail.com' || email === 'admin@easyearning.com';
+      
+      const newUser: AppUser = {
+        id: uid,
+        email,
+        username,
+        phone,
+        role: isAdminEmail ? 'admin' : 'user',
+        balance: isAdminEmail ? 999999 : 0,
+        totalEarnings: isAdminEmail ? 999999 : 0,
+        vipLevel: isAdminEmail ? 5 : 0,
+        trc20Address: '',
+        referrerId: actualRef,
+        createdAt: Date.now(),
+        lastMiningDate: null,
+      };
 
-    const newUser = store.addUser({
-      username,
-      password: pass,
-      phone,
-      role: 'user',
-      trc20Address: '',
-      referrerId: actualRef
-    });
-    
-    setUser(newUser);
-    localStorage.setItem('active_user_id', newUser.id);
-    return true;
-  };
-
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('active_user_id');
-  };
-
-  const refreshUser = () => {
-    if (user) {
-      const found = store.getState().users.find(u => u.id === user.id);
-      if (found) setUser(found);
+      await setDoc(doc(db, 'users', uid), newUser);
+      setUser(newUser);
+      
+      return true;
+    } catch (e: any) {
+      console.error('Registration error:', e);
+      throw e;
     }
+  };
+
+  const logout = async () => {
+    await fbSignOut(auth);
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, refreshUser }}>
-      {children}
+    <AuthContext.Provider value={{ user, fbUser, login, register, logout, loading }}>
+      {!loading && children}
     </AuthContext.Provider>
   );
 }

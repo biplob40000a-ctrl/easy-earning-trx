@@ -1,26 +1,12 @@
-import { AppState, Notice, Transaction, User, VIPLevel, Product, Order } from '../types';
+import { AppState, Notice, Transaction, User, VIPLevel, Product, Order, PaymentMethod } from '../types';
 import { generateId } from './utils';
 import { db } from './firebase';
-import { doc, getDoc, setDoc, onSnapshot, collection } from 'firebase/firestore';
+import { doc, getDoc, setDoc, onSnapshot, collection, query, where, deleteDoc } from 'firebase/firestore';
 
-const STORE_KEY = 'easy_earning_trx_db';
-const FB_DOC_ID = 'main_state';
+const STORE_KEY = 'easy_earning_trx_db_v2';
+let unsubscribers: (() => void)[] = [];
 
-// ... rest of the initial arrays ...
-const initialNotices: Notice[] = [
-  { id: '1', text: 'Welcome to Easy Earning TRX! Join our Telegram for daily signals.', isActive: true, timestamp: Date.now() },
-  { id: '2', text: 'VIP 3 upgrade now gives 10% extra daily bonus until the end of the month!', isActive: true, timestamp: Date.now() },
-];
-
-const initialProducts: Product[] = [
-  { id: '1', name: 'Premium Running Shoes', hash: 'Size 42', price: 150, img: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&q=80&w=300&h=300' },
-  { id: '2', name: 'Classic Denim Pants', hash: 'Size 32', price: 85, img: 'https://images.unsplash.com/photo-1542272604-787c3835535d?auto=format&fit=crop&q=80&w=300&h=300' },
-  { id: '3', name: 'Urban Sneakers', hash: 'Size 43', price: 120, img: 'https://images.unsplash.com/photo-1515955656352-a1fa3ffcd111?auto=format&fit=crop&q=80&w=300&h=300' },
-  { id: '4', name: 'Cargo Pants Black', hash: 'Size 34', price: 95, img: 'https://images.unsplash.com/photo-1624378439575-d10c5513fd6c?auto=format&fit=crop&q=80&w=300&h=300' },
-  { id: '5', name: 'Sport Joggers', hash: 'Size M', price: 65, img: 'https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&q=80&w=300&h=300' },
-  { id: '6', name: 'Leather Boots', hash: 'Size 44', price: 210, img: 'https://images.unsplash.com/photo-1520639888713-7851133b1ed0?auto=format&fit=crop&q=80&w=300&h=300' },
-];
-
+// Fallback initial data (only used if Firebase doesn't load)
 export const VIP_LEVELS: VIPLevel[] = [
   { level: 0, name: 'Free User', price: 0, dailyIncome: 0.5, validityDays: 365, maxTasks: 1 },
   { level: 1, name: 'VIP 1', price: 100, dailyIncome: 5, validityDays: 365, maxTasks: 5 },
@@ -33,30 +19,19 @@ export const VIP_LEVELS: VIPLevel[] = [
   { level: 8, name: 'VIP 8', price: 100000, dailyIncome: 12000, validityDays: 365, maxTasks: 60 },
 ];
 
-const initialPaymentMethods: PaymentMethod[] = [
-  { id: '1', name: 'Binance', network: 'TRC20', address: 'TBinanceAddress123456789' },
-  { id: '2', name: 'Bybit', network: 'TRC20', address: 'TBybitAddress987654321' },
-  { id: '3', name: 'Trust Wallet', network: 'TRC20', address: 'TTrustWalletAddress456xyz' }
+const initialNotices: Notice[] = [
+  { id: '1', text: 'Welcome to Easy Earning TRX! Join our Telegram for daily signals.', isActive: true, timestamp: Date.now() },
+  { id: '2', text: 'VIP 3 upgrade now gives 10% extra daily bonus until the end of the month!', isActive: true, timestamp: Date.now() },
+];
+
+const initialProducts: Product[] = [
+  { id: '1', name: 'Premium Running Shoes', hash: 'Size 42', price: 150, img: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&q=80&w=300&h=300' },
+  { id: '2', name: 'Classic Denim Pants', hash: 'Size 32', price: 85, img: 'https://images.unsplash.com/photo-1542272604-787c3835535d?auto=format&fit=crop&q=80&w=300&h=300' },
+  { id: '3', name: 'Urban Sneakers', hash: 'Size 43', price: 120, img: 'https://images.unsplash.com/photo-1515955656352-a1fa3ffcd111?auto=format&fit=crop&q=80&w=300&h=300' },
 ];
 
 const defaultState: AppState = {
-  users: [
-    {
-      id: 'admin_1',
-      username: 'biplob122',
-      password: '122', // As requested
-      phone: '0000000000',
-      role: 'admin',
-      balance: 999999,
-      totalEarnings: 999999,
-      vipLevel: 5,
-      trc20Address: 'TAdminAddress123',
-      referrerId: null,
-      createdAt: Date.now(),
-      lastMiningDate: null,
-      isBlocked: false,
-    }
-  ],
+  users: [],
   transactions: [],
   notices: initialNotices,
   systemBalance: 0,
@@ -64,219 +39,318 @@ const defaultState: AppState = {
   orders: [],
   supportLink: 'https://t.me/easyearning_support',
   vipLevels: VIP_LEVELS,
-  paymentMethods: initialPaymentMethods,
+  paymentMethods: [
+    { id: '1', name: 'Binance', network: 'TRC20', address: 'TBinanceAddress123456789' }
+  ],
+  stakes: [],
 };
+
+function updateLocalState(updates: Partial<AppState>) {
+  const current = store.getState();
+  const newState = { ...current, ...updates };
+  localStorage.setItem(STORE_KEY, btoa(unescape(encodeURIComponent(JSON.stringify(newState)))));
+  window.dispatchEvent(new Event('store_updated'));
+}
 
 export const store = {
   getState: (): AppState => {
     try {
-      const stored = localStorage.getItem(STORE_KEY);
-      if (stored) {
-        const parsedState = JSON.parse(stored);
-        if (!parsedState.products || (parsedState.products.length > 0 && parsedState.products[0].name === 'Antminer S19 Pro')) {
-          parsedState.products = initialProducts;
-          localStorage.setItem(STORE_KEY, JSON.stringify(parsedState));
-        }
-        if (!parsedState.orders) parsedState.orders = [];
-        if (!parsedState.supportLink) parsedState.supportLink = 'https://t.me/easyearning_support';
-        if (!parsedState.vipLevels || parsedState.vipLevels.length < 9) {
-          parsedState.vipLevels = VIP_LEVELS;
-          localStorage.setItem(STORE_KEY, JSON.stringify(parsedState));
-        }
-        if (!parsedState.paymentMethods) parsedState.paymentMethods = initialPaymentMethods;
-        
-        // Force update admin credentials if they have stale local storage
-        const admin = parsedState.users.find((u: any) => u.role === 'admin');
-        if (admin && (admin.username !== 'biplob122' || admin.password !== '122')) {
-          admin.username = 'biplob122';
-          admin.password = '122';
-          localStorage.setItem(STORE_KEY, JSON.stringify(parsedState));
-        }
-
-        return parsedState;
+      const storedRaw = localStorage.getItem(STORE_KEY);
+      if (storedRaw) {
+        return JSON.parse(decodeURIComponent(escape(atob(storedRaw))));
       }
     } catch (e) {
       console.error('Error reading store', e);
     }
-    // Initialize if empty
-    localStorage.setItem(STORE_KEY, JSON.stringify(defaultState));
     return defaultState;
   },
 
-  setState: (newState: Partial<AppState>) => {
-    const current = store.getState();
-    const updated = { ...current, ...newState };
-    localStorage.setItem(STORE_KEY, JSON.stringify(updated));
-    
-    // Push to firebase asynchronously with safe merging
-    getDoc(doc(db, 'state', FB_DOC_ID)).then(snapshot => {
-      let finalState = updated;
-      if (snapshot.exists()) {
-        const fbData = snapshot.data() as AppState;
-        
-        // Merge users
-        const userMap = new Map();
-        fbData.users?.forEach(u => userMap.set(u.id, u));
-        updated.users?.forEach(u => userMap.set(u.id, u));
-        
-        // Merge transactions
-        const txMap = new Map();
-        fbData.transactions?.forEach(t => txMap.set(t.id, t));
-        updated.transactions?.forEach(t => txMap.set(t.id, t));
-        
-        // Merge products
-        const prodMap = new Map();
-        fbData.products?.forEach(p => prodMap.set(p.id, p));
-        updated.products?.forEach(p => prodMap.set(p.id, p));
-        
-        // Merge orders
-        const orderMap = new Map();
-        fbData.orders?.forEach(o => orderMap.set(o.id, o));
-        updated.orders?.forEach(o => orderMap.set(o.id, o));
-
-        finalState = {
-          ...fbData,
-          ...newState, // Only overwrite top-level keys that were explicitly changed in this setState call!
-          users: Array.from(userMap.values()),
-          transactions: Array.from(txMap.values()).sort((a,b) => b.timestamp - a.timestamp),
-          products: Array.from(prodMap.values()),
-          orders: Array.from(orderMap.values()).sort((a,b) => b.timestamp - a.timestamp),
-        };
-      }
-      return setDoc(doc(db, 'state', FB_DOC_ID), finalState);
-    }).catch(e => console.error("Firebase sync error", e));
+  clearUserSubscriptions: () => {
+    unsubscribers.forEach(u => u());
+    unsubscribers = [];
   },
 
-  initFirebase: () => {
-    onSnapshot(doc(db, 'state', FB_DOC_ID), (snapshot) => {
+  initFirebase: async (uid: string) => {
+    store.clearUserSubscriptions();
+
+    // Check user role
+    const userDocRef = doc(db, 'users', uid);
+    let isAdmin = false;
+    try {
+      const snap = await getDoc(userDocRef);
+      if (snap.exists() && snap.data().role === 'admin') {
+        isAdmin = true;
+      }
+    } catch (e) {
+        console.error("Checking admin failed");
+    }
+
+    // 1. Users Collection
+    if (isAdmin) {
+      const u1 = onSnapshot(collection(db, 'users'), snapshot => {
+        updateLocalState({ users: snapshot.docs.map(d => d.data() as User) });
+      });
+      unsubscribers.push(u1);
+    } else {
+      const u2 = onSnapshot(userDocRef, snapshot => {
+        if (snapshot.exists()) {
+           updateLocalState({ users: [snapshot.data() as User] });
+        }
+      });
+      unsubscribers.push(u2);
+    }
+
+    // 2. Transactions
+    const txQuery = isAdmin ? collection(db, 'transactions') : query(collection(db, 'transactions'), where('userId', '==', uid));
+    const u3 = onSnapshot(txQuery, snapshot => {
+      updateLocalState({ transactions: snapshot.docs.map(d => ({ ...d.data(), id: d.id } as Transaction)).sort((a, b) => b.timestamp - a.timestamp) });
+    });
+    unsubscribers.push(u3);
+
+    // 3. Orders
+    const orderQuery = isAdmin ? collection(db, 'orders') : query(collection(db, 'orders'), where('userId', '==', uid));
+    const u4 = onSnapshot(orderQuery, snapshot => {
+      updateLocalState({ orders: snapshot.docs.map(d => ({ ...d.data(), id: d.id } as Order)).sort((a, b) => b.timestamp - a.timestamp) });
+    });
+    unsubscribers.push(u4);
+
+    // 4. Products
+    const u5 = onSnapshot(collection(db, 'products'), snapshot => {
+      updateLocalState({ products: snapshot.docs.map(d => ({ ...d.data(), id: d.id } as Product)) });
+    });
+    unsubscribers.push(u5);
+
+    // 5. Notices
+    const u6 = onSnapshot(collection(db, 'notices'), snapshot => {
+      updateLocalState({ notices: snapshot.docs.map(d => ({ ...d.data(), id: d.id } as Notice)).sort((a, b) => b.timestamp - a.timestamp) });
+    });
+    unsubscribers.push(u6);
+
+    // 6. Payment Methods
+    const u7 = onSnapshot(collection(db, 'paymentMethods'), snapshot => {
+      updateLocalState({ paymentMethods: snapshot.docs.map(d => ({ ...d.data(), id: d.id } as PaymentMethod)) });
+    });
+    unsubscribers.push(u7);
+
+    // 7. System Config
+    const u8 = onSnapshot(doc(db, 'config', 'system'), snapshot => {
       if (snapshot.exists()) {
-        const data = snapshot.data() as AppState;
-        localStorage.setItem(STORE_KEY, JSON.stringify(data));
-        window.dispatchEvent(new Event('store_updated'));
+        const data = snapshot.data();
+        updateLocalState({
+          supportLink: data.supportLink,
+          systemBalance: data.systemBalance,
+          vipLevels: data.vipLevels || VIP_LEVELS
+        });
       }
     });
+    unsubscribers.push(u8);
+
+    // 7. Stakes
+    const stakeQuery = isAdmin ? collection(db, 'stakes') : query(collection(db, 'stakes'), where('userId', '==', uid));
+    const u9 = onSnapshot(stakeQuery, snapshot => {
+      // @ts-ignore
+      updateLocalState({ stakes: snapshot.docs.map(d => ({ ...d.data(), id: d.id })).sort((a, b) => b.timestamp - a.timestamp) });
+    });
+    unsubscribers.push(u9);
+
+    // Initial Database Seed for Admins
+    if (isAdmin) {
+       getDoc(doc(db, 'config', 'system')).then(async snap => {
+          if (!snap.exists()) {
+             console.log("Seeding Database...");
+             await setDoc(doc(db, 'config', 'system'), { 
+                supportLink: 'https://t.me/easyearning_support', 
+                systemBalance: 0,
+                vipLevels: VIP_LEVELS 
+             });
+             for(let n of initialNotices) { await setDoc(doc(db, 'notices', n.id), n); }
+             for(let p of initialProducts) { await setDoc(doc(db, 'products', p.id), p); }
+             await setDoc(doc(db, 'paymentMethods', '1'), { name: 'Binance', network: 'TRC20', address: 'TBinanceAddress123456789' });
+          }
+       });
+    }
   },
 
-  // User methods
+  // Users
   getUserByUsername: (username: string) => {
     return store.getState().users.find(u => u.username === username);
   },
 
-  updateUser: (id: string, updates: Partial<User>) => {
+  updateUser: async (id: string, updates: Partial<User>) => {
+    // Optimistic Update
     const state = store.getState();
-    const users = state.users.map(u => u.id === id ? { ...u, ...updates } : u);
-    store.setState({ users });
+    updateLocalState({ users: state.users.map(u => u.id === id ? { ...u, ...updates } : u) });
+    try {
+      await setDoc(doc(db, 'users', id), updates, { merge: true });
+    } catch (e) { console.error("Error updating user", e); }
   },
 
-  addUser: (user: Omit<User, 'id' | 'createdAt' | 'lastMiningDate' | 'totalEarnings' | 'balance' | 'vipLevel'>) => {
-    const newUser: User = {
-      ...user,
-      id: generateId(),
-      createdAt: Date.now(),
-      lastMiningDate: null,
-      totalEarnings: 0,
-      balance: 0, // Sign up bonus
-      vipLevel: 0,
-    };
-    const state = store.getState();
-    store.setState({ users: [...state.users, newUser] });
-    return newUser;
+  addUser: (user: any) => {
+     return user;
   },
 
   // Transactions
-  addTransaction: (tx: Omit<Transaction, 'id' | 'timestamp'>) => {
-    const newTx: Transaction = {
-      ...tx,
-      id: generateId(),
-      timestamp: Date.now(),
-    };
+  addTransaction: async (tx: Omit<Transaction, 'id' | 'timestamp'>) => {
+    const id = generateId();
+    const newTx: Transaction = { ...tx, id, timestamp: Date.now() };
     const state = store.getState();
-    store.setState({ transactions: [newTx, ...state.transactions] });
-    return newTx;
+    updateLocalState({ transactions: [newTx, ...state.transactions] });
+    try {
+      await setDoc(doc(db, 'transactions', id), newTx);
+      return newTx;
+    } catch (e) { console.error("Error adding transaction", e); return newTx; }
   },
   
-  updateTransaction: (id: string, updates: Partial<Transaction>) => {
+  updateTransaction: async (id: string, updates: Partial<Transaction>) => {
     const state = store.getState();
-    const transactions = state.transactions.map(t => t.id === id ? { ...t, ...updates } : t);
-    store.setState({ transactions });
+    updateLocalState({ transactions: state.transactions.map(t => t.id === id ? { ...t, ...updates } : t) });
+    try {
+      await setDoc(doc(db, 'transactions', id), updates, { merge: true });
+    } catch(e) { console.error("Error updating transaction", e); }
   },
 
   // Products
-  addProduct: (product: Omit<Product, 'id'>) => {
-    const newProduct = { ...product, id: generateId() };
+  addProduct: async (product: Omit<Product, 'id'>) => {
+    const id = generateId();
+    const newProduct = { ...product, id };
     const state = store.getState();
-    store.setState({ products: [...state.products, newProduct] });
-    return newProduct;
+    updateLocalState({ products: [...state.products, newProduct] });
+    try {
+      await setDoc(doc(db, 'products', id), newProduct);
+      return newProduct;
+    } catch (e) { console.error("Error adding product", e); return newProduct; }
   },
 
-  updateProduct: (id: string, updates: Partial<Product>) => {
+  updateProduct: async (id: string, updates: Partial<Product>) => {
     const state = store.getState();
-    const products = state.products.map(p => p.id === id ? { ...p, ...updates } : p);
-    store.setState({ products });
+    updateLocalState({ products: state.products.map(p => p.id === id ? { ...p, ...updates } : p) });
+    try {
+      await setDoc(doc(db, 'products', id), updates, { merge: true });
+    } catch (e) { console.error("Error updating product", e); }
   },
 
-  deleteProduct: (id: string) => {
+  deleteProduct: async (id: string) => {
     const state = store.getState();
-    store.setState({ products: state.products.filter(p => p.id !== id) });
+    updateLocalState({ products: state.products.filter(p => p.id !== id) });
+    try {
+      await deleteDoc(doc(db, 'products', id));
+    } catch (e) { console.error("Error deleting product", e); }
   },
 
   // Orders
-  addOrder: (order: Omit<Order, 'id' | 'timestamp'>) => {
-    const newOrder: Order = {
-      ...order,
-      id: generateId(),
-      timestamp: Date.now(),
-    };
+  addOrder: async (order: Omit<Order, 'id' | 'timestamp'>) => {
+    const id = generateId();
+    const newOrder: Order = { ...order, id, timestamp: Date.now() };
     const state = store.getState();
-    store.setState({ orders: [newOrder, ...state.orders] });
-    return newOrder;
+    updateLocalState({ orders: [newOrder, ...state.orders] });
+    try {
+      await setDoc(doc(db, 'orders', id), newOrder);
+      return newOrder;
+    } catch (e) { console.error("Error adding order", e); return newOrder; }
   },
 
-  updateSystemSettings: (settings: Partial<AppState>) => {
+  // Stakes
+  addStake: async (stake: any) => {
+    const id = generateId();
+    const newStake = { ...stake, id };
     const state = store.getState();
-    store.setState({ ...state, ...settings });
+    updateLocalState({ stakes: [newStake, ...(state.stakes || [])] });
+    try {
+      await setDoc(doc(db, 'stakes', id), newStake);
+      return newStake;
+    } catch(e) { console.error("Error adding stake", e); return newStake; }
   },
 
-  updateVipLevel: (level: number, updates: Partial<VIPLevel>) => {
+  updateStake: async (id: string, updates: any) => {
+    const state = store.getState();
+    updateLocalState({ stakes: (state.stakes || []).map(s => s.id === id ? { ...s, ...updates } : s) });
+    try {
+      await setDoc(doc(db, 'stakes', id), updates, { merge: true });
+    } catch (e) { console.error("Error updating stake", e); }
+  },
+
+  deleteStake: async (id: string) => {
+    const state = store.getState();
+    updateLocalState({ stakes: (state.stakes || []).filter(s => s.id !== id) });
+    try {
+      await deleteDoc(doc(db, 'stakes', id));
+    } catch (e) { console.error("Error deleting stake", e); }
+  },
+
+  // System
+  updateSystemSettings: async (settings: Partial<AppState>) => {
+    const state = store.getState();
+    updateLocalState({ ...state, ...settings });
+    try {
+      const { supportLink, systemBalance } = settings;
+      const updates: any = {};
+      if (supportLink !== undefined) updates.supportLink = supportLink;
+      if (systemBalance !== undefined) updates.systemBalance = systemBalance;
+      await setDoc(doc(db, 'config', 'system'), updates, { merge: true });
+    } catch (e) { console.error("Error updating config", e); }
+  },
+
+  updateVipLevel: async (level: number, updates: Partial<VIPLevel>) => {
     const state = store.getState();
     const vipLevels = state.vipLevels?.map(v => v.level === level ? { ...v, ...updates } : v) || VIP_LEVELS;
-    store.setState({ vipLevels });
+    updateLocalState({ vipLevels });
+    try {
+      await setDoc(doc(db, 'config', 'system'), { vipLevels }, { merge: true });
+    } catch (e) { console.error("Error updating VIP", e); }
   },
 
   // Notices
-  addNotice: (text: string) => {
+  addNotice: async (text: string) => {
+    const id = generateId();
+    const newNotice = { id, text, isActive: true, timestamp: Date.now() };
     const state = store.getState();
-    const newNotice = { id: generateId(), text, isActive: true, timestamp: Date.now() };
-    store.setState({ notices: [newNotice, ...state.notices] });
+    updateLocalState({ notices: [newNotice, ...state.notices] });
+    try {
+      await setDoc(doc(db, 'notices', id), newNotice);
+    } catch (e) { console.error("Error adding notice", e); }
   },
 
-  updateNotice: (id: string, updates: Partial<Notice>) => {
+  updateNotice: async (id: string, updates: Partial<Notice>) => {
     const state = store.getState();
-    const notices = state.notices.map(n => n.id === id ? { ...n, ...updates } : n);
-    store.setState({ notices });
+    updateLocalState({ notices: state.notices.map(n => n.id === id ? { ...n, ...updates } : n) });
+    try {
+      await setDoc(doc(db, 'notices', id), updates, { merge: true });
+    } catch (e) { console.error("Error updating notice", e); }
   },
 
-  deleteNotice: (id: string) => {
+  deleteNotice: async (id: string) => {
     const state = store.getState();
-    store.setState({ notices: state.notices.filter(n => n.id !== id) });
+    updateLocalState({ notices: state.notices.filter(n => n.id !== id) });
+    try {
+      await deleteDoc(doc(db, 'notices', id));
+    } catch (e) { console.error("Error deleting notice", e); }
   },
 
   // Payment Methods
-  addPaymentMethod: (method: Omit<PaymentMethod, 'id'>) => {
-    const newMethod = { ...method, id: generateId() };
+  addPaymentMethod: async (method: Omit<PaymentMethod, 'id'>) => {
+    const id = generateId();
+    const newMethod = { ...method, id };
     const state = store.getState();
-    store.setState({ paymentMethods: [...(state.paymentMethods || []), newMethod] });
-    return newMethod;
+    updateLocalState({ paymentMethods: [...(state.paymentMethods || []), newMethod] });
+    try {
+      await setDoc(doc(db, 'paymentMethods', id), newMethod);
+      return newMethod;
+    } catch (e) { console.error("Error adding payment method", e); return newMethod; }
   },
 
-  updatePaymentMethod: (id: string, updates: Partial<PaymentMethod>) => {
+  updatePaymentMethod: async (id: string, updates: Partial<PaymentMethod>) => {
     const state = store.getState();
-    const paymentMethods = (state.paymentMethods || []).map(m => m.id === id ? { ...m, ...updates } : m);
-    store.setState({ paymentMethods });
+    updateLocalState({ paymentMethods: (state.paymentMethods || []).map(m => m.id === id ? { ...m, ...updates } : m) });
+    try {
+      await setDoc(doc(db, 'paymentMethods', id), updates, { merge: true });
+    } catch (e) { console.error("Error updating payment method", e); }
   },
 
-  deletePaymentMethod: (id: string) => {
+  deletePaymentMethod: async (id: string) => {
     const state = store.getState();
-    store.setState({ paymentMethods: (state.paymentMethods || []).filter(m => m.id !== id) });
+    updateLocalState({ paymentMethods: (state.paymentMethods || []).filter(m => m.id !== id) });
+    try {
+      await deleteDoc(doc(db, 'paymentMethods', id));
+    } catch (e) { console.error("Error deleting payment method", e); }
   }
 };

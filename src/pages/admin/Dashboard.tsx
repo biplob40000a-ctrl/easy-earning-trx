@@ -10,7 +10,7 @@ export default function AdminDashboard() {
   const [txs, setTxs] = useState<Transaction[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   
-  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'products' | 'finances' | 'settings'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'products' | 'stakes' | 'finances' | 'settings'>('overview');
   
   // Product Edit Modal
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -18,7 +18,7 @@ export default function AdminDashboard() {
   const [prodForm, setProdForm] = useState({ name: '', hash: '', price: '0', img: '' });
 
   const [editingUser, setEditingUser] = useState<User | null>(null);
-  const [userForm, setUserForm] = useState({ balance: '0', vipLevel: 0 });
+  const [userForm, setUserForm] = useState({ balance: '0', vipLevel: 0, password: '' });
   const [viewedUserHistory, setViewedUserHistory] = useState<Transaction[] | null>(null);
 
   const [supportLink, setSupportLink] = useState('');
@@ -153,14 +153,15 @@ export default function AdminDashboard() {
 
   const openEditUser = (u: User) => {
     setEditingUser(u);
-    setUserForm({ balance: u.balance.toString(), vipLevel: u.vipLevel });
+    setUserForm({ balance: u.balance.toString(), vipLevel: u.vipLevel, password: u.password });
   };
 
   const handleSaveUser = () => {
     if (editingUser) {
       store.updateUser(editingUser.id, {
         balance: parseFloat(userForm.balance) || 0,
-        vipLevel: userForm.vipLevel
+        vipLevel: userForm.vipLevel,
+        password: userForm.password || editingUser.password
       });
       setEditingUser(null);
       refreshData();
@@ -206,11 +207,72 @@ export default function AdminDashboard() {
             <TabButton active={activeTab === 'overview'} onClick={() => setActiveTab('overview')} label="Overview" />
             <TabButton active={activeTab === 'users'} onClick={() => setActiveTab('users')} label="Users" />
             <TabButton active={activeTab === 'products'} onClick={() => setActiveTab('products')} label="Products" />
+            <TabButton active={activeTab === 'stakes'} onClick={() => setActiveTab('stakes')} label="Stakes" />
             <TabButton active={activeTab === 'finances'} onClick={() => setActiveTab('finances')} label="Finances" />
             <TabButton active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} label="Settings" />
          </div>
       </div>
 
+
+      {activeTab === 'stakes' && (
+        <div className="glass-panel p-6 rounded-3xl overflow-x-auto">
+          <h2 className="text-xl font-bold mb-6">User Stakes</h2>
+          <table className="w-full text-left text-sm">
+             <thead>
+               <tr className="text-text-muted border-b border-[var(--color-border-card)]">
+                 <th className="pb-3 font-medium">User ID</th>
+                 <th className="pb-3 font-medium">Amount</th>
+                 <th className="pb-3 font-medium">Duration</th>
+                 <th className="pb-3 font-medium">Status</th>
+                 <th className="pb-3 font-medium text-right">Actions</th>
+               </tr>
+             </thead>
+             <tbody className="divide-y divide-[var(--color-border-card)]">
+               {(store.getState().stakes || []).map(stake => {
+                 const u = users.find(u => u.id === stake.userId);
+                 return (
+                 <tr key={stake.id} className="hover:bg-[var(--color-bg-base)] transition-colors">
+                   <td className="py-4 font-medium">{u?.username || stake.userId.substring(0,6)}</td>
+                   <td className="py-4 font-bold text-brand-gold">{formatTRX(stake.amount)}</td>
+                   <td className="py-4 text-xs">{stake.durationMonths} Months</td>
+                   <td className="py-4">
+                     <span className={`px-2 py-1 rounded text-xs font-bold uppercase ${
+                       stake.status === 'active' ? 'bg-blue-500/10 text-blue-400' : 'bg-green-500/10 text-green-500'
+                     }`}>
+                       {stake.status}
+                     </span>
+                   </td>
+                   <td className="py-4 text-right space-x-2">
+                     {stake.status === 'active' && (
+                       <button onClick={() => {
+                         if (confirm('Mark this stake as completed?')) {
+                           store.updateStake(stake.id, { status: 'completed' });
+                           refreshData();
+                         }
+                       }} className="p-1 px-2 text-xs bg-green-500/10 text-green-500 hover:bg-green-500/20 rounded-md">
+                         Complete
+                       </button>
+                     )}
+                     <button onClick={() => {
+                       if (confirm('Delete this stake?')) {
+                         store.deleteStake(stake.id);
+                         refreshData();
+                       }
+                     }} className="p-1 px-2 text-xs bg-red-500/10 text-red-500 hover:bg-red-500/20 rounded-md">
+                       Delete
+                     </button>
+                   </td>
+                 </tr>
+               )})}
+               {(store.getState().stakes || []).length === 0 && (
+                 <tr>
+                   <td colSpan={5} className="py-8 text-center text-text-muted">No stakes found.</td>
+                 </tr>
+               )}
+             </tbody>
+          </table>
+        </div>
+      )}
 
       {activeTab === 'finances' && (
         <div className="glass-panel p-6 rounded-3xl overflow-x-auto">
@@ -221,6 +283,7 @@ export default function AdminDashboard() {
                  <th className="pb-3 font-medium">Date</th>
                  <th className="pb-3 font-medium">User ID</th>
                  <th className="pb-3 font-medium">Type</th>
+                 <th className="pb-3 font-medium">Details / Address</th>
                  <th className="pb-3 font-medium">Amount</th>
                  <th className="pb-3 font-medium">Status</th>
                  <th className="pb-3 font-medium text-right">Actions</th>
@@ -234,6 +297,7 @@ export default function AdminDashboard() {
                    <td className="py-4 text-text-muted text-xs">{new Date(tx.timestamp).toLocaleString()}</td>
                    <td className="py-4 font-medium">{u?.username || tx.userId.substring(0,6)}</td>
                    <td className="py-4 uppercase text-xs font-bold">{tx.type}</td>
+                   <td className="py-4 text-xs text-text-muted max-w-[150px] truncate" title={tx.address || tx.description}>{tx.address || tx.description || '-'}</td>
                    <td className="py-4 font-bold text-brand-gold">{formatTRX(tx.amount)}</td>
                    <td className="py-4">
                      <span className={`px-2 py-1 rounded text-xs font-bold uppercase ${
@@ -567,6 +631,11 @@ export default function AdminDashboard() {
                 <div>
                   <label className="text-sm text-text-muted mb-1 block">Balance (TRX)</label>
                   <input type="number" value={userForm.balance} onChange={(e) => setUserForm({ ...userForm, balance: e.target.value })} className="w-full bg-[var(--color-bg-base)] border border-[var(--color-border-card)] rounded-xl py-3 px-4 text-white" />
+                </div>
+                <div>
+                  <label className="text-sm text-text-muted mb-1 block">Password</label>
+                  <input type="text" value={userForm.password} onChange={(e) => setUserForm({ ...userForm, password: e.target.value })} className="w-full bg-[var(--color-bg-base)] border border-[var(--color-border-card)] rounded-xl py-3 px-4 text-white" />
+                  <p className="text-xs text-text-muted mt-1">Leave as is unless changing it.</p>
                 </div>
                 <div>
                   <label className="text-sm text-text-muted mb-1 block">VIP Level (0-9)</label>
