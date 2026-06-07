@@ -58,7 +58,7 @@ export default function Finance() {
         type: isDeposit ? 'deposit' : 'withdraw',
         amount: val,
         status: 'pending',
-        address: isDeposit ? undefined : `${withdrawMethod} - ${address}`,
+        address: isDeposit ? txId : `${withdrawMethod} - ${address || user.trc20Address}`,
         description: isDeposit ? `Awaiting network confirmation (${selectedMethod?.name || 'TRX'}). TXID: ${txId}` : `Awaiting admin approval via ${withdrawMethod}`
       });
       

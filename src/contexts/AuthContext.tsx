@@ -86,7 +86,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, pass: string) => {
     try {
-      await signInWithEmailAndPassword(auth, email, pass);
+      const cred = await signInWithEmailAndPassword(auth, email, pass);
+      const snapshot = await getDoc(doc(db, 'users', cred.user.uid));
+      if (snapshot.exists()) {
+        setUser(snapshot.data() as AppUser);
+      }
       return true;
     } catch (e: any) {
       console.error(e);

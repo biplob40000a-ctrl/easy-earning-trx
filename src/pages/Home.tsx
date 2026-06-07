@@ -1,7 +1,7 @@
 import { useAuth } from '../contexts/AuthContext';
 import { store, VIP_LEVELS } from '../lib/store';
 import { formatTRX } from '../lib/utils';
-import { Megaphone, ArrowUpRight, ArrowDownRight, Wallet, Activity, ChevronRight, ShoppingBag, Vault } from 'lucide-react';
+import { Megaphone, ArrowUpRight, ArrowDownRight, Wallet, Activity, ChevronRight, ShoppingBag, Lock } from 'lucide-react';
 import { motion } from 'motion/react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
@@ -121,7 +121,7 @@ export default function Home() {
       <div className="grid grid-cols-5 gap-2">
         <QuickAction icon={<Wallet />} label="Recharge" onClick={() => navigate('/finance/deposit')} color="text-brand-primary" bg="bg-brand-primary/10" />
         <QuickAction icon={<ArrowDownRight />} label="Withdraw" onClick={() => navigate('/finance/withdraw')} color="text-blue-400" bg="bg-blue-400/10" />
-        <QuickAction icon={<Vault />} label="Stake" onClick={() => navigate('/stake')} color="text-green-500" bg="bg-green-500/10" />
+        <QuickAction icon={<Lock />} label="Stake" onClick={() => navigate('/stake')} color="text-green-500" bg="bg-green-500/10" />
         <QuickAction icon={<ShoppingBag />} label="Shop" onClick={() => navigate('/shop')} color="text-brand-gold" bg="bg-brand-gold/10" />
         <QuickAction icon={<Activity />} label="History" onClick={() => setIsHistoryOpen(true)} color="text-purple-400" bg="bg-purple-400/10" />
       </div>

@@ -74,15 +74,20 @@ export const store = {
     store.clearUserSubscriptions();
 
     // Check user role
-    const userDocRef = doc(db, 'users', uid);
     let isAdmin = false;
-    try {
-      const snap = await getDoc(userDocRef);
-      if (snap.exists() && snap.data().role === 'admin') {
-        isAdmin = true;
+    const user = auth.currentUser;
+    if (user && (user.email === 'biplob40000a@gmail.com' || user.email === 'admin@easyearning.com')) {
+      isAdmin = true;
+    } else {
+      const userDocRef = doc(db, 'users', uid);
+      try {
+        const snap = await getDoc(userDocRef);
+        if (snap.exists() && snap.data().role === 'admin') {
+          isAdmin = true;
+        }
+      } catch (e) {
+          console.error("Checking admin failed");
       }
-    } catch (e) {
-        console.error("Checking admin failed");
     }
 
     // 1. Users Collection
