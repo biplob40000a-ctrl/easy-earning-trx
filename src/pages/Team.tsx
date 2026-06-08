@@ -8,6 +8,7 @@ export default function Team() {
   const { user } = useAuth();
   const [copied, setCopied] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [activeLevelTab, setActiveLevelTab] = useState<1 | 2 | 3>(1);
 
   useEffect(() => {
     const handleUpdate = () => setRefreshTrigger(prev => prev + 1);
@@ -15,7 +16,6 @@ export default function Team() {
     return () => window.removeEventListener('store_updated', handleUpdate);
   }, []);
 
-  // Default to a fallback if origin is not available or just use window.location.origin in browser
   const _origin = typeof window !== 'undefined' ? window.location.origin : 'https://easyearning.com';
   const refLink = `${_origin}/register?ref=${user?.username}`;
 
@@ -27,7 +27,6 @@ export default function Team() {
 
   const allUsers = store.getState().users;
   
-  // Build levels
   const currentUserRef = user?.username?.trim().toLowerCase();
   const l1Users = allUsers.filter(u => u.referrerId?.trim().toLowerCase() === currentUserRef);
   const l2Users = allUsers.filter(u => l1Users.some(l1 => l1.username?.trim().toLowerCase() === u.referrerId?.trim().toLowerCase()));
@@ -85,7 +84,7 @@ export default function Team() {
         <div className="mt-4 flex items-center justify-between text-sm">
            <span className="text-text-muted">Invitation Code:</span>
            <span className="font-bold text-brand-gold">{user?.username}</span>
-        </div>
+         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
@@ -110,38 +109,98 @@ export default function Team() {
            Level Details
          </div>
          <div className="divide-y divide-[var(--color-border-card)] text-sm">
-            <div className="p-4 flex justify-between items-center">
-              <div>
-                <div className="font-bold text-brand-primary">Level 1 (10%)</div>
-                <div className="text-text-muted text-xs mt-1">Direct Invites</div>
-              </div>
-              <div className="text-right">
-                <div className="font-bold">{l1Users.length} Members</div>
-                <div className="text-text-muted text-xs mt-1">{formatTRX(getLevelReward(1))}</div>
-              </div>
-            </div>
-            <div className="p-4 flex justify-between items-center">
-              <div>
-                <div className="font-bold text-brand-gold">Level 2 (5%)</div>
-                <div className="text-text-muted text-xs mt-1">Indirect Invites</div>
-              </div>
-              <div className="text-right">
-                <div className="font-bold">{l2Users.length} Members</div>
-                <div className="text-text-muted text-xs mt-1">{formatTRX(getLevelReward(2))}</div>
-              </div>
-            </div>
-            <div className="p-4 flex justify-between items-center">
-              <div>
-                <div className="font-bold text-blue-400">Level 3 (2%)</div>
-                <div className="text-text-muted text-xs mt-1">Sub-Invites</div>
-              </div>
-              <div className="text-right">
-                <div className="font-bold">{l3Users.length} Members</div>
-                <div className="text-text-muted text-xs mt-1">{formatTRX(getLevelReward(3))}</div>
-              </div>
-            </div>
+             <div className="p-4 flex justify-between items-center">
+               <div>
+                 <div className="font-bold text-brand-primary">Level 1 (10%)</div>
+                 <div className="text-text-muted text-xs mt-1">Direct Invites</div>
+               </div>
+               <div className="text-right">
+                 <div className="font-bold">{l1Users.length} Members</div>
+                 <div className="text-text-muted text-xs mt-1">{formatTRX(getLevelReward(1))}</div>
+               </div>
+             </div>
+             <div className="p-4 flex justify-between items-center">
+               <div>
+                 <div className="font-bold text-brand-gold">Level 2 (5%)</div>
+                 <div className="text-text-muted text-xs mt-1">Indirect Invites</div>
+               </div>
+               <div className="text-right">
+                 <div className="font-bold">{l2Users.length} Members</div>
+                 <div className="text-text-muted text-xs mt-1">{formatTRX(getLevelReward(2))}</div>
+               </div>
+             </div>
+             <div className="p-4 flex justify-between items-center">
+               <div>
+                 <div className="font-bold text-blue-400">Level 3 (2%)</div>
+                 <div className="text-text-muted text-xs mt-1">Sub-Invites</div>
+               </div>
+               <div className="text-right">
+                 <div className="font-bold">{l3Users.length} Members</div>
+                 <div className="text-text-muted text-xs mt-1">{formatTRX(getLevelReward(3))}</div>
+               </div>
+             </div>
+          </div>
+       </div>
+
+       {/* Detailed Team List Panel */}
+       <div className="glass-panel rounded-3xl overflow-hidden mt-6">
+         <div className="p-4 border-b border-[var(--color-border-card)] flex items-center justify-between">
+           <span className="font-bold text-white">Team Members List</span>
+           <span className="text-xs text-text-muted bg-[var(--color-bg-base)] px-2.5 py-1 rounded-full border border-[var(--color-border-card)]">{teamSize} Total Members</span>
          </div>
-      </div>
+         
+         <div className="flex border-b border-[var(--color-border-card)] bg-[var(--color-bg-card)]/40 font-semibold text-sm">
+           <button 
+             onClick={() => setActiveLevelTab(1)}
+             className={`flex-1 py-3 text-center border-b-2 transition-all duration-200 ${activeLevelTab === 1 ? 'border-brand-primary text-brand-primary bg-brand-primary/5 font-bold' : 'border-transparent text-text-muted hover:text-white'}`}
+           >
+             Level 1 ({l1Users.length})
+           </button>
+           <button 
+             onClick={() => setActiveLevelTab(2)}
+             className={`flex-1 py-3 text-center border-b-2 transition-all duration-200 ${activeLevelTab === 2 ? 'border-brand-primary text-brand-primary bg-brand-primary/5 font-bold' : 'border-transparent text-text-muted hover:text-white'}`}
+           >
+             Level 2 ({l2Users.length})
+           </button>
+           <button 
+             onClick={() => setActiveLevelTab(3)}
+             className={`flex-1 py-3 text-center border-b-2 transition-all duration-200 ${activeLevelTab === 3 ? 'border-brand-primary text-brand-primary bg-brand-primary/5 font-bold' : 'border-transparent text-text-muted hover:text-white'}`}
+           >
+             Level 3 ({l3Users.length})
+           </button>
+         </div>
+         
+         <div className="p-4 bg-[var(--color-bg-card)]/20">
+           {((activeLevelTab === 1 ? l1Users : activeLevelTab === 2 ? l2Users : l3Users)).length === 0 ? (
+             <div className="text-center py-10 text-text-[var(--color-text-muted)] flex flex-col items-center justify-center">
+               <Users size={32} className="mx-auto mb-2 opacity-30" />
+               <p className="text-sm text-text-muted">No members registered in this level yet.</p>
+             </div>
+           ) : (
+             <div className="space-y-3 max-h-72 overflow-y-auto pr-1 flex flex-col">
+               {((activeLevelTab === 1 ? l1Users : activeLevelTab === 2 ? l2Users : l3Users)).map((u) => (
+                 <div key={u.id} className="bg-[var(--color-bg-base)] border border-[var(--color-border-card)] rounded-2xl p-4 flex items-center justify-between hover:border-brand-primary/30 transition-all duration-200">
+                   <div className="space-y-1 text-left">
+                     <div className="font-bold text-white flex items-center gap-2">
+                       <span>{u.username}</span>
+                       {u.vipLevel > 0 && (
+                         <span className="bg-brand-gold/20 text-brand-gold border border-brand-gold/30 text-[9px] px-1.5 py-0.5 rounded-md font-bold">
+                           VIP {u.vipLevel}
+                         </span>
+                       )}
+                     </div>
+                     <div className="text-xs text-text-muted font-mono">{u.phone ? u.phone.replace(/(\d{3})\d{5}(\d{2})/, '$1*****$2') : 'No Phone'}</div>
+                   </div>
+                   <div className="text-right">
+                     <div className="text-xs text-brand-gold font-semibold">Joined {new Date(u.createdAt).toLocaleDateString()}</div>
+                     <div className="text-[10px] text-text-muted mt-0.5">Invited by: <span className="text-white/80 font-medium font-mono">{u.referrerId}</span></div>
+                   </div>
+                 </div>
+               ))}
+             </div>
+           )}
+         </div>
+       </div>
     </div>
   );
 }

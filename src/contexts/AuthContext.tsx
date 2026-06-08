@@ -3,7 +3,7 @@ import { User as AppUser } from '../types';
 import { store } from '../lib/store';
 import { auth, db } from '../lib/firebase';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut as fbSignOut, onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, collection, getDocs } from 'firebase/firestore';
 
 interface AuthContextType {
   user: AppUser | null;
@@ -112,23 +112,55 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const register = async (email: string, username: string, pass: string, phone: string, ref: string) => {
     try {
+      // 1. Fetch existing users to ensure username isn't taken and referrer is valid
+      const usersSnap = await getDocs(collection(db, 'users'));
+      const lowercaseUsername = username.trim().toLowerCase();
+      
+      const duplicateUser = usersSnap.docs.find(doc => {
+        const docData = doc.data();
+        return docData.username?.trim().toLowerCase() === lowercaseUsername;
+      });
+      
+      if (duplicateUser) {
+        throw new Error('This username is already taken. Please choose another username.');
+      }
+
+      // 2. Normalize and check referrerId
+      let finalReferrer = (ref || 'Admin').trim();
+      const lowercaseRef = finalReferrer.toLowerCase();
+      
+      if (lowercaseRef !== 'admin') {
+        const foundReferrer = usersSnap.docs.find(doc => {
+          const docData = doc.data();
+          return docData.username?.trim().toLowerCase() === lowercaseRef;
+        });
+        
+        if (foundReferrer) {
+          finalReferrer = foundReferrer.data().username; // Normalize to exact database casing
+        } else {
+          finalReferrer = 'Admin'; // Fallback to Admin if specified referrer does not exist
+        }
+      } else {
+        finalReferrer = 'Admin';
+      }
+
+      // 3. Create auth user
       const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
       const uid = userCredential.user.uid;
-      const actualRef = ref || 'admin';
       
       const isAdminEmail = email === 'biplob40000a@gmail.com' || email === 'admin@easyearning.com';
       
       const newUser: AppUser = {
         id: uid,
         email,
-        username,
+        username: username.trim(),
         phone,
         role: isAdminEmail ? 'admin' : 'user',
         balance: isAdminEmail ? 999999 : 0,
         totalEarnings: isAdminEmail ? 999999 : 0,
         vipLevel: isAdminEmail ? 5 : 0,
         trc20Address: '',
-        referrerId: actualRef,
+        referrerId: finalReferrer,
         createdAt: Date.now(),
         lastMiningDate: null,
       };
