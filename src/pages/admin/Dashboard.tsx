@@ -499,6 +499,7 @@ export default function AdminDashboard() {
                  <th className="pb-3 font-medium">Username</th>
                  <th className="pb-3 font-medium">Phone</th>
                  <th className="pb-3 font-medium">Balance</th>
+                 <th className="pb-3 font-medium">Referred By</th>
                  <th className="pb-3 font-medium">Status</th>
                  <th className="pb-3 font-medium text-right">Actions</th>
                </tr>
@@ -512,6 +513,7 @@ export default function AdminDashboard() {
                    </td>
                    <td className="py-4 text-text-muted">{u.phone}</td>
                    <td className="py-4 text-brand-gold font-bold">{formatTRX(u.balance)}</td>
+                   <td className="py-4 text-text-muted">{u.referrerId && u.referrerId !== 'admin' ? u.referrerId : '-'}</td>
                    <td className="py-4">
                      {u.isBlocked ? (
                        <span className="bg-red-500/10 text-red-500 px-2 py-1 rounded text-xs font-bold">Blocked</span>
@@ -539,7 +541,7 @@ export default function AdminDashboard() {
                  </tr>
                ))}
                {users.length === 0 && (
-                 <tr><td colSpan={5} className="text-center py-6 text-text-muted">No users registered yet.</td></tr>
+                 <tr><td colSpan={6} className="text-center py-6 text-text-muted">No users registered yet.</td></tr>
                )}
              </tbody>
            </table>
