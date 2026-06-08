@@ -93,6 +93,8 @@ export const store = {
     // 1. Users Collection
     const u1 = onSnapshot(collection(db, 'users'), snapshot => {
       updateLocalState({ users: snapshot.docs.map(d => d.data() as User) });
+    }, error => {
+      console.error('Users listener error:', error);
     });
     unsubscribers.push(u1);
 

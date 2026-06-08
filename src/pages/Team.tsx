@@ -28,9 +28,10 @@ export default function Team() {
   const allUsers = store.getState().users;
   
   // Build levels
-  const l1Users = allUsers.filter(u => u.referrerId === user?.username);
-  const l2Users = allUsers.filter(u => l1Users.some(l1 => l1.username === u.referrerId));
-  const l3Users = allUsers.filter(u => l2Users.some(l2 => l2.username === u.referrerId));
+  const currentUserRef = user?.username?.trim().toLowerCase();
+  const l1Users = allUsers.filter(u => u.referrerId?.trim().toLowerCase() === currentUserRef);
+  const l2Users = allUsers.filter(u => l1Users.some(l1 => l1.username?.trim().toLowerCase() === u.referrerId?.trim().toLowerCase()));
+  const l3Users = allUsers.filter(u => l2Users.some(l2 => l2.username?.trim().toLowerCase() === u.referrerId?.trim().toLowerCase()));
   
   const teamSize = l1Users.length + l2Users.length + l3Users.length;
   
