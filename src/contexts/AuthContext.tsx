@@ -117,36 +117,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const uid = userCredential.user.uid;
 
       try {
-        // 2. Fetch existing users to ensure username isn't taken and referrer is valid
-        const usersSnap = await getDocs(collection(db, 'users'));
-        const lowercaseUsername = username.trim().toLowerCase();
+        const cleanUsername = username.trim();
+        const cleanRef = (ref || '').trim();
         
-        const duplicateUser = usersSnap.docs.find(doc => {
-          const docData = doc.data();
-          return docData.username?.trim().toLowerCase() === lowercaseUsername;
-        });
+        // 2. Fetch all users to check uniqueness and referrals locally (since it's small scale)
+        const usersSnap = await getDocs(collection(db, 'users'));
+        const users = usersSnap.docs.map(d => d.data());
+        
+        const duplicateUser = users.find(u => u.username?.trim().toLowerCase() === cleanUsername.toLowerCase());
         
         if (duplicateUser) {
           throw new Error('This username is already taken. Please choose another username.');
         }
 
-        // 3. Normalize and check referrerId
-        let finalReferrer = (ref || 'Admin').trim();
-        const lowercaseRef = finalReferrer.toLowerCase();
-        
-        if (lowercaseRef !== 'admin') {
-          const foundReferrer = usersSnap.docs.find(doc => {
-            const docData = doc.data();
-            return docData.username?.trim().toLowerCase() === lowercaseRef;
-          });
-          
-          if (foundReferrer) {
-            finalReferrer = foundReferrer.data().username; // Normalize to exact database casing
-          } else {
-            finalReferrer = 'Admin'; // Fallback to Admin if specified referrer does not exist
-          }
-        } else {
-          finalReferrer = 'Admin';
+        let finalReferrer = 'Admin';
+        if (cleanRef.toLowerCase() !== 'admin' && cleanRef !== '') {
+           const foundRef = users.find(u => u.username?.trim().toLowerCase() === cleanRef.toLowerCase());
+           if (foundRef) {
+             finalReferrer = foundRef.username;
+           }
         }
 
         const isAdminEmail = email === 'biplob40000a@gmail.com' || email === 'admin@easyearning.com';
@@ -154,7 +143,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const newUser: AppUser = {
           id: uid,
           email,
-          username: username.trim(),
+          username: cleanUsername,
           phone,
           role: isAdminEmail ? 'admin' : 'user',
           balance: isAdminEmail ? 999999 : 0,

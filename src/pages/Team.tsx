@@ -27,10 +27,25 @@ export default function Team() {
 
   const allUsers = store.getState().users;
   
-  const currentUserRef = user?.username?.trim().toLowerCase();
-  const l1Users = allUsers.filter(u => u.referrerId?.trim().toLowerCase() === currentUserRef);
-  const l2Users = allUsers.filter(u => l1Users.some(l1 => l1.username?.trim().toLowerCase() === u.referrerId?.trim().toLowerCase()));
-  const l3Users = allUsers.filter(u => l2Users.some(l2 => l2.username?.trim().toLowerCase() === u.referrerId?.trim().toLowerCase()));
+  const currentUserRefs = [user?.username?.trim().toLowerCase()].filter(Boolean) as string[];
+  if (user?.role === 'admin' && !currentUserRefs.includes('admin')) {
+    currentUserRefs.push('admin');
+  }
+
+  const l1Users = allUsers.filter(u => {
+    const ref = u.referrerId || '';
+    return currentUserRefs.includes(ref.trim().toLowerCase());
+  });
+
+  const l2Users = allUsers.filter(u => {
+    const ref = u.referrerId || '';
+    return l1Users.some(l1 => l1.username.trim().toLowerCase() === ref.trim().toLowerCase());
+  });
+
+  const l3Users = allUsers.filter(u => {
+    const ref = u.referrerId || '';
+    return l2Users.some(l2 => l2.username.trim().toLowerCase() === ref.trim().toLowerCase());
+  });
   
   const teamSize = l1Users.length + l2Users.length + l3Users.length;
   
@@ -193,7 +208,7 @@ export default function Team() {
                    </div>
                    <div className="text-right">
                      <div className="text-xs text-brand-gold font-semibold">Joined {new Date(u.createdAt).toLocaleDateString()}</div>
-                     <div className="text-[10px] text-text-muted mt-0.5">Invited by: <span className="text-white/80 font-medium font-mono">{u.referrerId}</span></div>
+                     <div className="text-[10px] text-text-muted mt-0.5">Invited by: <span className="text-white/80 font-medium font-mono">{u.referrerId || 'None'}</span></div>
                    </div>
                  </div>
                ))}

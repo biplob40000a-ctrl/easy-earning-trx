@@ -63,7 +63,7 @@ export default function AdminDashboard() {
       const allUsers = store.getState().users;
       // L1
       if (user.referrerId) {
-        const l1 = allUsers.find(u => u.username.trim().toLowerCase() === user.referrerId?.trim().toLowerCase());
+        const l1 = allUsers.find(u => u.username.trim().toLowerCase() === user.referrerId!.trim().toLowerCase());
         if (l1) {
           const r1 = tx.amount * 0.10;
           store.updateUser(l1.id, { balance: l1.balance + r1, totalEarnings: l1.totalEarnings + r1 });
@@ -71,7 +71,7 @@ export default function AdminDashboard() {
           
           // L2
           if (l1.referrerId) {
-            const l2 = allUsers.find(u => u.username.trim().toLowerCase() === l1.referrerId?.trim().toLowerCase());
+            const l2 = allUsers.find(u => u.username.trim().toLowerCase() === l1.referrerId!.trim().toLowerCase());
             if (l2) {
               const r2 = tx.amount * 0.05;
               store.updateUser(l2.id, { balance: l2.balance + r2, totalEarnings: l2.totalEarnings + r2 });
@@ -79,7 +79,7 @@ export default function AdminDashboard() {
               
               // L3
               if (l2.referrerId) {
-                const l3 = allUsers.find(u => u.username.trim().toLowerCase() === l2.referrerId?.trim().toLowerCase());
+                const l3 = allUsers.find(u => u.username.trim().toLowerCase() === l2.referrerId!.trim().toLowerCase());
                 if (l3) {
                   const r3 = tx.amount * 0.02;
                   store.updateUser(l3.id, { balance: l3.balance + r3, totalEarnings: l3.totalEarnings + r3 });
@@ -513,7 +513,7 @@ export default function AdminDashboard() {
                    </td>
                    <td className="py-4 text-text-muted">{u.phone}</td>
                    <td className="py-4 text-brand-gold font-bold">{formatTRX(u.balance)}</td>
-                   <td className="py-4 text-text-muted">{u.referrerId && u.referrerId.toLowerCase() !== 'admin' ? u.referrerId : '-'}</td>
+                   <td className="py-4 text-text-muted">{u.referrerId ? u.referrerId : '-'}</td>
                    <td className="py-4">
                      {u.isBlocked ? (
                        <span className="bg-red-500/10 text-red-500 px-2 py-1 rounded text-xs font-bold">Blocked</span>
