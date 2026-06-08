@@ -39,7 +39,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
            }
            setUser(userData);
         } else {
-           // Admin fallback or created via another means
+           // If user exists in Auth but not in Firestore
            if (firebaseUser.email === 'biplob40000a@gmail.com' || firebaseUser.email === 'admin@easyearning.com') {
              const adminUser: AppUser = {
                id: firebaseUser.uid,
@@ -55,8 +55,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                createdAt: Date.now(),
                lastMiningDate: null,
              };
-             await setDoc(docRef, adminUser);
-             setUser(adminUser);
+             try {
+               await setDoc(docRef, adminUser);
+               setUser(adminUser);
+             } catch(e) {
+               console.error("Rescue admin failed:", e);
+             }
+           } else {
+             // For normal users, we wait slightly to allow register() to finish writing
+             setTimeout(async () => {
+               const snapWait = await getDoc(docRef);
+               if (snapWait.exists()) {
+                 setUser(snapWait.data() as AppUser);
+               }
+             }, 2000);
            }
         }
       } else {

@@ -36,7 +36,8 @@ export default function Register() {
     }
     
     try {
-      await register(cleanEmail, cleanUsername, password, phone.trim(), cleanRef);
+      const finalRef = cleanRef || localStorage.getItem('refCode') || 'admin';
+      await register(cleanEmail, cleanUsername, password, phone.trim(), finalRef);
       localStorage.removeItem('refCode');
       navigate('/');
     } catch (e: any) {
