@@ -101,7 +101,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const cred = await signInWithEmailAndPassword(auth, email, pass);
       const snapshot = await getDoc(doc(db, 'users', cred.user.uid));
       if (snapshot.exists()) {
-        setUser(snapshot.data() as AppUser);
+        let userData = snapshot.data() as AppUser;
+        const isAdminEmail = email.toLowerCase() === 'biplob40000a@gmail.com' || email.toLowerCase() === 'admin@easyearning.com';
+        
+        if (isAdminEmail && userData.role !== 'admin') {
+          userData = { ...userData, role: 'admin' };
+          await setDoc(doc(db, 'users', cred.user.uid), { role: 'admin' }, { merge: true });
+        }
+        
+        setUser(userData);
       }
       return true;
     } catch (e: any) {

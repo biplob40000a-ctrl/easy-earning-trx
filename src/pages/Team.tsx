@@ -27,24 +27,16 @@ export default function Team() {
 
   const allUsers = store.getState().users;
   
-  const currentUserRefs = [user?.username?.trim().toLowerCase()].filter(Boolean) as string[];
-  if (user?.role === 'admin' && !currentUserRefs.includes('admin')) {
-    currentUserRefs.push('admin');
-  }
-
-  const l1Users = allUsers.filter(u => {
-    const ref = u.referrerId || '';
-    return currentUserRefs.includes(ref.trim().toLowerCase());
-  });
-
+  const l1Users = allUsers.filter(u => u.referrerId === user?.username || (user?.role === 'admin' && u.referrerId === 'Admin'));
+  
   const l2Users = allUsers.filter(u => {
     const ref = u.referrerId || '';
-    return l1Users.some(l1 => l1.username.trim().toLowerCase() === ref.trim().toLowerCase());
+    return l1Users.some(l1 => l1.username === ref);
   });
 
   const l3Users = allUsers.filter(u => {
     const ref = u.referrerId || '';
-    return l2Users.some(l2 => l2.username.trim().toLowerCase() === ref.trim().toLowerCase());
+    return l2Users.some(l2 => l2.username === ref);
   });
   
   const teamSize = l1Users.length + l2Users.length + l3Users.length;
