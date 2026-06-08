@@ -187,6 +187,14 @@ export const store = {
      return user;
   },
 
+  deleteUser: async (id: string) => {
+    const state = store.getState();
+    updateLocalState({ users: state.users.filter(u => u.id !== id) });
+    try {
+      await deleteDoc(doc(db, 'users', id));
+    } catch (e) { console.error("Error deleting user", e); }
+  },
+
   // Transactions
   addTransaction: async (tx: Omit<Transaction, 'id' | 'timestamp'>) => {
     const id = generateId();

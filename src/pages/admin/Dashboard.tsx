@@ -54,11 +54,18 @@ export default function AdminDashboard() {
     refreshData();
   };
 
-  const handleApproveDeposit = (tx: Transaction) => {
-    store.updateTransaction(tx.id, { status: 'completed' });
+  const handleDeleteUser = async (id: string) => {
+    await store.deleteUser(id);
+    refreshData();
+  };
+
+  const handleApproveDeposit = async (tx: Transaction) => {
+    await store.updateTransaction(tx.id, { status: 'completed' });
     const user = store.getState().users.find(u => u.id === tx.userId);
     if (user) {
-      store.updateUser(user.id, { balance: user.balance + tx.amount, totalEarnings: user.totalEarnings + tx.amount });
+      const uBal = user.balance || 0;
+      const uTot = user.totalEarnings || 0;
+      await store.updateUser(user.id, { balance: uBal + tx.amount, totalEarnings: uTot + tx.amount });
       
       const allUsers = store.getState().users;
       // L1
@@ -66,24 +73,24 @@ export default function AdminDashboard() {
         const l1 = allUsers.find(u => (u.username || '').trim().toLowerCase() === user.referrerId!.trim().toLowerCase());
         if (l1) {
           const r1 = tx.amount * 0.10;
-          store.updateUser(l1.id, { balance: l1.balance + r1, totalEarnings: l1.totalEarnings + r1 });
-          store.addTransaction({ userId: l1.id, type: 'reward', amount: r1, status: 'completed', description: `Team Level 1 Reward (${user.username})` });
+          await store.updateUser(l1.id, { balance: (l1.balance || 0) + r1, totalEarnings: (l1.totalEarnings || 0) + r1 });
+          await store.addTransaction({ userId: l1.id, type: 'reward', amount: r1, status: 'completed', description: `Team Level 1 Reward (${user.username})` });
           
           // L2
           if (l1.referrerId) {
             const l2 = allUsers.find(u => (u.username || '').trim().toLowerCase() === l1.referrerId!.trim().toLowerCase());
             if (l2) {
               const r2 = tx.amount * 0.05;
-              store.updateUser(l2.id, { balance: l2.balance + r2, totalEarnings: l2.totalEarnings + r2 });
-              store.addTransaction({ userId: l2.id, type: 'reward', amount: r2, status: 'completed', description: `Team Level 2 Reward (${user.username})` });
+              await store.updateUser(l2.id, { balance: (l2.balance || 0) + r2, totalEarnings: (l2.totalEarnings || 0) + r2 });
+              await store.addTransaction({ userId: l2.id, type: 'reward', amount: r2, status: 'completed', description: `Team Level 2 Reward (${user.username})` });
               
               // L3
               if (l2.referrerId) {
                 const l3 = allUsers.find(u => (u.username || '').trim().toLowerCase() === l2.referrerId!.trim().toLowerCase());
                 if (l3) {
                   const r3 = tx.amount * 0.02;
-                  store.updateUser(l3.id, { balance: l3.balance + r3, totalEarnings: l3.totalEarnings + r3 });
-                  store.addTransaction({ userId: l3.id, type: 'reward', amount: r3, status: 'completed', description: `Team Level 3 Reward (${user.username})` });
+                  await store.updateUser(l3.id, { balance: (l3.balance || 0) + r3, totalEarnings: (l3.totalEarnings || 0) + r3 });
+                  await store.addTransaction({ userId: l3.id, type: 'reward', amount: r3, status: 'completed', description: `Team Level 3 Reward (${user.username})` });
                 }
               }
             }
@@ -114,10 +121,8 @@ export default function AdminDashboard() {
   };
 
   const handleDeleteProduct = (id: string) => {
-    if (confirm('Are you sure you want to delete this product?')) {
-      store.deleteProduct(id);
-      refreshData();
-    }
+    store.deleteProduct(id);
+    refreshData();
   };
 
   const handleSaveProduct = () => {
@@ -190,10 +195,8 @@ export default function AdminDashboard() {
   };
 
   const handleDeleteMethod = (id: string) => {
-    if (confirm('Delete this payment method?')) {
-      store.deletePaymentMethod(id);
-      refreshData();
-    }
+    store.deletePaymentMethod(id);
+    refreshData();
   };
 
   return (
@@ -245,19 +248,15 @@ export default function AdminDashboard() {
                    <td className="py-4 text-right space-x-2">
                      {stake.status === 'active' && (
                        <button onClick={() => {
-                         if (confirm('Mark this stake as completed?')) {
-                           store.updateStake(stake.id, { status: 'completed' });
-                           refreshData();
-                         }
+                         store.updateStake(stake.id, { status: 'completed' });
+                         refreshData();
                        }} className="p-1 px-2 text-xs bg-green-500/10 text-green-500 hover:bg-green-500/20 rounded-md">
                          Complete
                        </button>
                      )}
                      <button onClick={() => {
-                       if (confirm('Delete this stake?')) {
                          store.deleteStake(stake.id);
                          refreshData();
-                       }
                      }} className="p-1 px-2 text-xs bg-red-500/10 text-red-500 hover:bg-red-500/20 rounded-md">
                        Delete
                      </button>
@@ -473,10 +472,8 @@ export default function AdminDashboard() {
                     </button>
                     <button 
                       onClick={() => {
-                        if (confirm('Delete this notice?')) {
                           store.deleteNotice(n.id);
                           refreshData();
-                        }
                       }}
                       className="p-1 px-2 text-xs bg-red-500/10 text-red-500 hover:bg-red-500/20 rounded-md"
                     >
@@ -537,6 +534,9 @@ export default function AdminDashboard() {
                          <ShieldAlert size={16} /> <span className="hidden sm:inline">Block</span>
                        </button>
                      )}
+                     <button onClick={() => handleDeleteUser(u.id)} className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg inline-flex items-center gap-1" title="Delete User">
+                       <Trash size={16} /> <span className="hidden sm:inline">Delete</span>
+                     </button>
                    </td>
                  </tr>
                ))}
