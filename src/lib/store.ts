@@ -91,19 +91,10 @@ export const store = {
     }
 
     // 1. Users Collection
-    if (isAdmin) {
-      const u1 = onSnapshot(collection(db, 'users'), snapshot => {
-        updateLocalState({ users: snapshot.docs.map(d => d.data() as User) });
-      });
-      unsubscribers.push(u1);
-    } else {
-      const u2 = onSnapshot(userDocRef, snapshot => {
-        if (snapshot.exists()) {
-           updateLocalState({ users: [snapshot.data() as User] });
-        }
-      });
-      unsubscribers.push(u2);
-    }
+    const u1 = onSnapshot(collection(db, 'users'), snapshot => {
+      updateLocalState({ users: snapshot.docs.map(d => d.data() as User) });
+    });
+    unsubscribers.push(u1);
 
     // 2. Transactions
     const txQuery = isAdmin ? collection(db, 'transactions') : query(collection(db, 'transactions'), where('userId', '==', uid));

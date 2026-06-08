@@ -31,7 +31,7 @@ export default function AdminDashboard() {
 
   const refreshData = () => {
     const state = store.getState();
-    setUsers(state.users.filter(u => u.role !== 'admin'));
+    setUsers(state.users);
     setTxs(state.transactions);
     setProducts(state.products);
     setSupportLink(state.supportLink || '');
@@ -506,7 +506,10 @@ export default function AdminDashboard() {
              <tbody className="divide-y divide-[var(--color-border-card)]">
                {users.map(u => (
                  <tr key={u.id} className="hover:bg-[var(--color-bg-base)] transition-colors">
-                   <td className="py-4 font-medium">{u.username}</td>
+                   <td className="py-4 font-medium flex items-center gap-2">
+                     {u.username}
+                     {u.role === 'admin' && <span className="px-2 py-0.5 text-[10px] bg-red-500/20 text-red-500 rounded font-bold uppercase">Admin</span>}
+                   </td>
                    <td className="py-4 text-text-muted">{u.phone}</td>
                    <td className="py-4 text-brand-gold font-bold">{formatTRX(u.balance)}</td>
                    <td className="py-4">

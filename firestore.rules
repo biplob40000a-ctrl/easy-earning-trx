@@ -19,7 +19,7 @@ service cloud.firestore {
     }
 
     match /users/{userId} {
-      allow read: if isSignedIn() && (userId == request.auth.uid || isAdmin());
+      allow read: if isSignedIn();
       // Create comes from functions or via an initial setup
       allow create: if isSignedIn() && userId == request.auth.uid;
       // Allow users to update their own non-sensitive details, or admin to update all
