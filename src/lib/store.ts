@@ -1,6 +1,6 @@
 import { AppState, Notice, Transaction, User, VIPLevel, Product, Order, PaymentMethod } from '../types';
 import { generateId } from './utils';
-import { db } from './firebase';
+import { db, auth } from './firebase';
 import { doc, getDoc, setDoc, onSnapshot, collection, query, where, deleteDoc } from 'firebase/firestore';
 
 const STORE_KEY = 'easy_earning_trx_db_v2';

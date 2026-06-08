@@ -63,7 +63,7 @@ export default function AdminDashboard() {
       const allUsers = store.getState().users;
       // L1
       if (user.referrerId) {
-        const l1 = allUsers.find(u => u.username === user.referrerId);
+        const l1 = allUsers.find(u => (u.username || '').trim().toLowerCase() === user.referrerId!.trim().toLowerCase());
         if (l1) {
           const r1 = tx.amount * 0.10;
           store.updateUser(l1.id, { balance: l1.balance + r1, totalEarnings: l1.totalEarnings + r1 });
@@ -71,7 +71,7 @@ export default function AdminDashboard() {
           
           // L2
           if (l1.referrerId) {
-            const l2 = allUsers.find(u => u.username === l1.referrerId);
+            const l2 = allUsers.find(u => (u.username || '').trim().toLowerCase() === l1.referrerId!.trim().toLowerCase());
             if (l2) {
               const r2 = tx.amount * 0.05;
               store.updateUser(l2.id, { balance: l2.balance + r2, totalEarnings: l2.totalEarnings + r2 });
@@ -79,7 +79,7 @@ export default function AdminDashboard() {
               
               // L3
               if (l2.referrerId) {
-                const l3 = allUsers.find(u => u.username === l2.referrerId);
+                const l3 = allUsers.find(u => (u.username || '').trim().toLowerCase() === l2.referrerId!.trim().toLowerCase());
                 if (l3) {
                   const r3 = tx.amount * 0.02;
                   store.updateUser(l3.id, { balance: l3.balance + r3, totalEarnings: l3.totalEarnings + r3 });

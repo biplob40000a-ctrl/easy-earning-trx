@@ -18,7 +18,6 @@ export function AppLayout() {
   }, []);
 
   if (!user) return <Navigate to="/login" replace />;
-  if (user.role === 'admin') return <Navigate to="/admin" replace />;
 
   const navItems = [
     { name: 'Home', path: '/', icon: Home },
@@ -133,7 +132,9 @@ export function AdminLayout() {
            <Link to="/admin" className="flex items-center gap-2 px-4 py-2 md:py-3 rounded-xl bg-brand-primary/10 text-brand-primary font-medium hover:bg-brand-primary/20 transition-colors">
               <Home size={18} className="shrink-0" /> <span className="hidden sm:inline">Dashboard</span>
            </Link>
-           {/* Add more admin links here */}
+           <Link to="/" className="flex items-center gap-2 px-4 py-2 md:py-3 rounded-xl text-text-muted hover:bg-white/5 transition-colors">
+              <User size={18} className="shrink-0" /> <span className="hidden sm:inline">User App</span>
+           </Link>
         </nav>
 
         <button onClick={logout} className="flex items-center gap-2 px-4 py-2 md:py-3 rounded-xl text-red-500 hover:bg-red-500/10 transition-colors md:mt-auto font-medium shrink-0">

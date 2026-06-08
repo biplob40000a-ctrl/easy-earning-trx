@@ -14,6 +14,7 @@ export interface User {
   createdAt: number;
   lastMiningDate: number | null;
   isBlocked?: boolean;
+  password?: string;
 }
 
 export interface VIPLevel {

@@ -22,7 +22,7 @@ export default function Staking() {
   const numDuration = parseInt(duration) || 1;
   const expectedReturn = numAmount + (numAmount * (INTEREST_RATE / 100) * numDuration);
 
-  const stakes = store.getState().stakes?.filter(s => s.userId === user?.id).sort((a,b) => b.timestamp - a.timestamp) || [];
+  const stakes = store.getState().stakes?.filter(s => s.userId === user?.id).sort((a,b) => b.startDate - a.startDate) || [];
 
   const handleStake = async () => {
     setError('');
