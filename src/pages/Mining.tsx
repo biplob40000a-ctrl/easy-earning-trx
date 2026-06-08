@@ -82,8 +82,9 @@ export default function Mining() {
   const handleClaim = () => {
     if (!user || status !== 'claim') return;
     
-    const newBalance = user.balance + userVip.dailyIncome;
-    const newTotal = user.totalEarnings + userVip.dailyIncome;
+    const amount = userVip.dailyIncome;
+    const newBalance = user.balance + amount;
+    const newTotal = user.totalEarnings + amount;
     
     store.updateUser(user.id, {
       balance: newBalance,
@@ -94,14 +95,14 @@ export default function Mining() {
     store.addTransaction({
       userId: user.id,
       type: 'mining',
-      amount: userVip.dailyIncome,
+      amount: amount,
       status: 'completed',
       description: `Daily mining reward (${userVip.name})`
     });
     
     refreshUser();
     setStatus('idle');
-    setSuccess(`Successfully claimed ${formatTRX(userVip.dailyIncome)}!`);
+    setSuccess(`Successfully claimed ${formatTRX(amount)}!`);
     
     setTimeout(() => {
       setSuccess('');
