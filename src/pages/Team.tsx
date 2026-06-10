@@ -31,17 +31,20 @@ export default function Team() {
     const ref = (u.referrerId || '').trim().toLowerCase();
     const currentUsername = (user?.username || '').trim().toLowerCase();
     const isAdmin = user?.role === 'admin';
+    if (!currentUsername) return false;
     return ref === currentUsername || (isAdmin && ref === 'admin');
   });
   
   const l2Users = allUsers.filter(u => {
     const ref = (u.referrerId || '').trim().toLowerCase();
-    return l1Users.some(l1 => (l1.username || '').trim().toLowerCase() === ref);
+    if (!ref) return false;
+    return l1Users.some(l1 => l1.username && l1.username.trim().toLowerCase() === ref);
   });
 
   const l3Users = allUsers.filter(u => {
     const ref = (u.referrerId || '').trim().toLowerCase();
-    return l2Users.some(l2 => (l2.username || '').trim().toLowerCase() === ref);
+    if (!ref) return false;
+    return l2Users.some(l2 => l2.username && l2.username.trim().toLowerCase() === ref);
   });
   
   const teamSize = l1Users.length + l2Users.length + l3Users.length;

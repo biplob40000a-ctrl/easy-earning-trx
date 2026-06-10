@@ -27,7 +27,9 @@ export default function Finance() {
   const selectedMethod = paymentMethods.find(m => m.id === selectedMethodId);
 
   const [withdrawMethod, setWithdrawMethod] = useState('Binance');
-  const withdrawMethodsList = ['Binance', 'Bybit', 'Trust Wallet', 'Other TRC20 Wallet'];
+  const withdrawMethodsList = ['Binance', 'Bybit'];
+
+  const isMobileBanking = ['bKash', 'Rocket'].includes(withdrawMethod);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -131,7 +133,7 @@ export default function Finance() {
           {selectedMethod && (
             <div className="bg-gradient-to-br from-brand-primary/10 to-transparent p-4 rounded-xl border border-brand-primary/20">
               <div className="text-sm font-medium mb-3 flex justify-between items-center">
-                <span>Transfer to {selectedMethod.network} Address:</span>
+                <span>Transfer to {selectedMethod.network} Address/Number:</span>
               </div>
               <div className="flex items-center gap-3 bg-[var(--color-bg-base)] p-3 rounded-xl border border-[var(--color-border-card)] break-all text-sm font-mono text-brand-gold">
                 <span className="flex-1">{selectedMethod.address}</span>
@@ -171,12 +173,12 @@ export default function Finance() {
             </div>
             
             <div className="space-y-2">
-              <label className="text-sm font-medium text-text-muted px-1">Receiving {withdrawMethod} TRC20 Address</label>
+              <label className="text-sm font-medium text-text-muted px-1">Receiving {withdrawMethod} {isMobileBanking ? 'Number' : 'Address (TRC20)'}</label>
               <div className="relative">
                 <Wallet className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted" size={20} />
                 <input
                   type="text"
-                  placeholder={`Enter ${withdrawMethod} Address (TRC20)`}
+                  placeholder={`Enter ${withdrawMethod} ${isMobileBanking ? 'Number' : 'Address'}`}
                   className="w-full bg-[var(--color-bg-card)] border border-[var(--color-border-card)] rounded-xl py-3.5 pl-12 pr-4 text-white focus:outline-none focus:border-brand-primary transition-all"
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
@@ -234,7 +236,7 @@ export default function Finance() {
           {isDeposit ? (
             <p>- Deposits may take 1 to 5 minutes to arrive in your balance.<br/>- Minimum deposit is 30 TRX.<br/>- Please enter correct Transaction ID.</p>
           ) : (
-            <p>- Withdrawals are processed within 24 hours.<br/>- A 5% handling fee may apply.<br/>- Minimum withdrawal is 10 TRX.<br/>- Ensure your {withdrawMethod} TRC-20 address is correct.</p>
+            <p>- Withdrawals are processed within 24 hours.<br/>- A 5% handling fee may apply.<br/>- Minimum withdrawal is 10 TRX.<br/>- Ensure your {withdrawMethod} {isMobileBanking ? 'number' : 'TRC-20 address'} is correct.</p>
           )}
         </div>
 

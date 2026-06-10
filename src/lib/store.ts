@@ -40,7 +40,8 @@ const defaultState: AppState = {
   supportLink: 'https://t.me/easyearning_support',
   vipLevels: VIP_LEVELS,
   paymentMethods: [
-    { id: '1', name: 'Binance', network: 'TRC20', address: 'TBinanceAddress123456789' }
+    { id: '2', name: 'Binance', network: 'TRC20', address: 'TBinanceAddress123456789' },
+    { id: '3', name: 'Bybit', network: 'TRC20', address: 'TBybitAddress123456789' }
   ],
   stakes: [],
 };
@@ -163,7 +164,8 @@ export const store = {
              });
              for(let n of initialNotices) { await setDoc(doc(db, 'notices', n.id), n); }
              for(let p of initialProducts) { await setDoc(doc(db, 'products', p.id), p); }
-             await setDoc(doc(db, 'paymentMethods', '1'), { name: 'Binance', network: 'TRC20', address: 'TBinanceAddress123456789' });
+             await setDoc(doc(db, 'paymentMethods', '2'), { name: 'Binance', network: 'TRC20', address: 'TBinanceAddress123456789' });
+             await setDoc(doc(db, 'paymentMethods', '3'), { name: 'Bybit', network: 'TRC20', address: 'TBybitAddress123456789' });
           }
        });
     }

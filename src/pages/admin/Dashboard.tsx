@@ -9,6 +9,7 @@ export default function AdminDashboard() {
   const [users, setUsers] = useState<User[]>([]);
   const [txs, setTxs] = useState<Transaction[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [userSearchQuery, setUserSearchQuery] = useState('');
   
   const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'products' | 'stakes' | 'finances' | 'settings'>('overview');
   
@@ -489,7 +490,16 @@ export default function AdminDashboard() {
 
       {activeTab === 'users' && (
         <div className="glass-panel p-6 rounded-3xl overflow-x-auto">
-           <h2 className="text-xl font-bold mb-6">User Management</h2>
+           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+             <h2 className="text-xl font-bold">User Management</h2>
+             <input
+               type="text"
+               placeholder="Search by username, phone..."
+               className="bg-[var(--color-bg-base)] border border-[var(--color-border-card)] rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-brand-primary min-w-[250px]"
+               value={userSearchQuery}
+               onChange={(e) => setUserSearchQuery(e.target.value)}
+             />
+           </div>
            <table className="w-full text-left text-sm">
              <thead>
                <tr className="text-text-muted border-b border-[var(--color-border-card)]">
@@ -497,12 +507,35 @@ export default function AdminDashboard() {
                  <th className="pb-3 font-medium">Phone</th>
                  <th className="pb-3 font-medium">Balance</th>
                  <th className="pb-3 font-medium">Referred By</th>
+                 <th className="pb-3 font-medium">Team (L1/L2/L3)</th>
                  <th className="pb-3 font-medium">Status</th>
                  <th className="pb-3 font-medium text-right">Actions</th>
                </tr>
              </thead>
              <tbody className="divide-y divide-[var(--color-border-card)]">
-               {users.map(u => (
+               {[...users]
+                 .sort((a,b) => (b.createdAt || 0) - (a.createdAt || 0))
+                 .filter(u => 
+                   u.username?.toLowerCase().includes(userSearchQuery.toLowerCase()) || 
+                   u.phone?.includes(userSearchQuery)
+                 )
+                 .map(u => {
+                   const userUn = (u.username || '').trim().toLowerCase();
+                   const uL1 = users.filter(x => {
+                     const xRef = (x.referrerId || '').trim().toLowerCase();
+                     if (!userUn) return false;
+                     return xRef === userUn || (u.role === 'admin' && xRef === 'admin');
+                   });
+                   const uL2 = users.filter(x => {
+                     const xRef = (x.referrerId || '').trim().toLowerCase();
+                     return uL1.some(l1 => l1.username && l1.username.trim().toLowerCase() === xRef);
+                   });
+                   const uL3 = users.filter(x => {
+                     const xRef = (x.referrerId || '').trim().toLowerCase();
+                     return uL2.some(l2 => l2.username && l2.username.trim().toLowerCase() === xRef);
+                   });
+                   
+                   return (
                  <tr key={u.id} className="hover:bg-[var(--color-bg-base)] transition-colors">
                    <td className="py-4 font-medium flex items-center gap-2">
                      {u.username}
@@ -511,6 +544,9 @@ export default function AdminDashboard() {
                    <td className="py-4 text-text-muted">{u.phone}</td>
                    <td className="py-4 text-brand-gold font-bold">{formatTRX(u.balance)}</td>
                    <td className="py-4 text-text-muted">{u.referrerId ? u.referrerId : '-'}</td>
+                   <td className="py-4 font-mono text-xs text-text-muted">
+                     {uL1.length} / {uL2.length} / {uL3.length}
+                   </td>
                    <td className="py-4">
                      {u.isBlocked ? (
                        <span className="bg-red-500/10 text-red-500 px-2 py-1 rounded text-xs font-bold">Blocked</span>
@@ -539,9 +575,9 @@ export default function AdminDashboard() {
                      </button>
                    </td>
                  </tr>
-               ))}
+               )})}
                {users.length === 0 && (
-                 <tr><td colSpan={6} className="text-center py-6 text-text-muted">No users registered yet.</td></tr>
+                 <tr><td colSpan={7} className="text-center py-6 text-text-muted">No users registered yet.</td></tr>
                )}
              </tbody>
            </table>

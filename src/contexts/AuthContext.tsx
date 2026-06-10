@@ -143,6 +143,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
            const foundRef = users.find(u => u.username?.trim().toLowerCase() === cleanRef.toLowerCase());
            if (foundRef) {
              finalReferrer = foundRef.username;
+           } else {
+             finalReferrer = cleanRef;
            }
         }
 
