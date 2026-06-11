@@ -99,4 +99,5 @@ export interface AppState {
   vipLevels?: VIPLevel[];
   paymentMethods?: PaymentMethod[];
   stakes?: StakeRecord[];
+  stakeSettings?: { interestRate: number; minStake: number; maxStake: number };
 }

@@ -23,6 +23,7 @@ export default function AdminDashboard() {
   const [viewedUserHistory, setViewedUserHistory] = useState<Transaction[] | null>(null);
 
   const [supportLink, setSupportLink] = useState('');
+  const [stakeSettings, setStakeSettings] = useState({ interestRate: 90, minStake: 200, maxStake: 4000 });
   const [vipLevels, setVipLevels] = useState<any[]>([]);
   const [paymentMethods, setPaymentMethods] = useState<any[]>([]);
   
@@ -36,6 +37,7 @@ export default function AdminDashboard() {
     setTxs(state.transactions);
     setProducts(state.products);
     setSupportLink(state.supportLink || '');
+    setStakeSettings(state.stakeSettings || { interestRate: 90, minStake: 200, maxStake: 4000 });
     setVipLevels(state.vipLevels || []);
     setPaymentMethods(state.paymentMethods || []);
   };
@@ -340,9 +342,43 @@ export default function AdminDashboard() {
                   className="w-full bg-[var(--color-bg-base)] border border-[var(--color-border-card)] rounded-xl py-3 px-4 text-white" 
                 />
               </div>
+
+              <div className="pt-4 border-t border-[var(--color-border-card)]">
+                <h3 className="font-bold mb-3 text-brand-gold">Stake Settings</h3>
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-sm text-text-muted mb-1 block">Monthly Interest Rate (%)</label>
+                    <input 
+                      type="number" 
+                      value={stakeSettings.interestRate} 
+                      onChange={(e) => setStakeSettings(prev => ({...prev, interestRate: parseFloat(e.target.value) || 0}))} 
+                      className="w-full bg-[var(--color-bg-base)] border border-[var(--color-border-card)] rounded-xl py-2 px-3 text-white" 
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm text-text-muted mb-1 block">Minimum Stake (TRX)</label>
+                    <input 
+                      type="number" 
+                      value={stakeSettings.minStake} 
+                      onChange={(e) => setStakeSettings(prev => ({...prev, minStake: parseFloat(e.target.value) || 0}))} 
+                      className="w-full bg-[var(--color-bg-base)] border border-[var(--color-border-card)] rounded-xl py-2 px-3 text-white" 
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm text-text-muted mb-1 block">Maximum Stake (TRX)</label>
+                    <input 
+                      type="number" 
+                      value={stakeSettings.maxStake} 
+                      onChange={(e) => setStakeSettings(prev => ({...prev, maxStake: parseFloat(e.target.value) || 0}))} 
+                      className="w-full bg-[var(--color-bg-base)] border border-[var(--color-border-card)] rounded-xl py-2 px-3 text-white" 
+                    />
+                  </div>
+                </div>
+              </div>
+
               <button 
                 onClick={() => {
-                  store.updateSystemSettings({ supportLink });
+                  store.updateSystemSettings({ supportLink, stakeSettings });
                   alert('Settings saved!');
                 }} 
                 className="px-6 py-3 bg-brand-primary text-white font-bold rounded-xl hover:bg-brand-primary/80 transition-colors"

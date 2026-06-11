@@ -192,13 +192,15 @@ export default function Finance() {
         <div className="space-y-2">
           <label className="text-sm font-medium text-text-muted px-1">{isDeposit ? 'Deposit Amount (TRX)' : 'Withdraw Amount (TRX)'}</label>
           <div className="relative">
-            <div className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-brand-primary">TRX</div>
+            <div className="absolute left-4 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full flex items-center justify-center z-10 shadow-[0_0_10px_rgba(235,11,44,0.3)]">
+               <img src="/trx-logo.svg" alt="TRX" className="w-full h-full object-contain" />
+            </div>
             <input
               type="number"
               min={isDeposit ? "30" : "10"}
               step="0.01"
               placeholder={isDeposit ? "Min. 30 TRX" : "Min. 10 TRX"}
-              className="w-full bg-[var(--color-bg-card)] border border-[var(--color-border-card)] rounded-xl py-3.5 pl-14 pr-4 text-white focus:outline-none focus:border-brand-primary transition-all text-lg font-bold"
+              className="w-full bg-[var(--color-bg-card)] border border-[var(--color-border-card)] rounded-xl py-3.5 pl-14 pr-4 text-white focus:outline-none focus:border-brand-primary transition-all font-bold text-lg"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               required

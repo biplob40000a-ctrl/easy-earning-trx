@@ -9,6 +9,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import { AppLayout, AdminLayout } from './components/Layout';
 import { lazy, Suspense } from 'react';
 import { store } from './lib/store';
+import CoinRain from './components/CoinRain';
 
 // Lazy load pages for better bundle chunking
 const Login = lazy(() => import('./pages/Login'));
@@ -42,6 +43,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
+        <CoinRain />
         <Suspense fallback={<LoadingFallback />}>
           <Routes>
             {/* Public Routes */}

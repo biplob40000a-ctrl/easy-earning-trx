@@ -13,10 +13,18 @@ export default function Staking() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [activeTab, setActiveTab] = useState<'stake' | 'my_stakes'>('stake');
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  const INTEREST_RATE = 2; // 2% per month
-  const MIN_STAKE = 200;
-  const MAX_STAKE = 4000;
+  useEffect(() => {
+    const handleUpdate = () => setRefreshTrigger(prev => prev + 1);
+    window.addEventListener('store_updated', handleUpdate);
+    return () => window.removeEventListener('store_updated', handleUpdate);
+  }, []);
+
+  const stakeSettings = store.getState().stakeSettings || { interestRate: 90, minStake: 200, maxStake: 4000 };
+  const INTEREST_RATE = stakeSettings.interestRate;
+  const MIN_STAKE = stakeSettings.minStake;
+  const MAX_STAKE = stakeSettings.maxStake;
 
   const numAmount = parseFloat(amount) || 0;
   const numDuration = parseInt(duration) || 1;
@@ -212,7 +220,7 @@ export default function Staking() {
                  <div className="flex justify-between items-start mb-4">
                    <div>
                      <div className="text-2xl font-bold text-white mb-1">{formatTRX(stake.amount)}</div>
-                     <div className="text-xs text-text-muted">Locked for {stake.durationMonths} months @ 2%/mo</div>
+                     <div className="text-xs text-text-muted">Locked for {stake.durationMonths} months @ {INTEREST_RATE}%/mo</div>
                    </div>
                    <div className={`px-3 py-1 rounded-full text-xs font-bold ${stake.status === 'active' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' : 'bg-green-500/10 text-green-500 border border-green-500/20'}`}>
                      {stake.status.toUpperCase()}

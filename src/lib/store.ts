@@ -9,7 +9,7 @@ let unsubscribers: (() => void)[] = [];
 // Fallback initial data (only used if Firebase doesn't load)
 export const VIP_LEVELS: VIPLevel[] = [
   { level: 0, name: 'Free User', price: 0, dailyIncome: 0.5, validityDays: 365, maxTasks: 1 },
-  { level: 1, name: 'VIP 1', price: 100, dailyIncome: 5, validityDays: 365, maxTasks: 5 },
+  { level: 1, name: 'VIP 1', price: 30, dailyIncome: 5, validityDays: 365, maxTasks: 5 },
   { level: 2, name: 'VIP 2', price: 300, dailyIncome: 18, validityDays: 365, maxTasks: 10 },
   { level: 3, name: 'VIP 3', price: 1000, dailyIncome: 65, validityDays: 365, maxTasks: 15 },
   { level: 4, name: 'VIP 4', price: 3000, dailyIncome: 210, validityDays: 365, maxTasks: 20 },
@@ -44,6 +44,7 @@ const defaultState: AppState = {
     { id: '3', name: 'Bybit', network: 'TRC20', address: 'TBybitAddress123456789' }
   ],
   stakes: [],
+  stakeSettings: { interestRate: 90, minStake: 200, maxStake: 4000 },
 };
 
 function updateLocalState(updates: Partial<AppState>) {
@@ -138,7 +139,8 @@ export const store = {
         updateLocalState({
           supportLink: data.supportLink,
           systemBalance: data.systemBalance,
-          vipLevels: data.vipLevels || VIP_LEVELS
+          vipLevels: data.vipLevels || VIP_LEVELS,
+          stakeSettings: data.stakeSettings || { interestRate: 90, minStake: 200, maxStake: 4000 }
         });
       }
     });
@@ -160,7 +162,8 @@ export const store = {
              await setDoc(doc(db, 'config', 'system'), { 
                 supportLink: 'https://t.me/easyearning_support', 
                 systemBalance: 0,
-                vipLevels: VIP_LEVELS 
+                vipLevels: VIP_LEVELS,
+                stakeSettings: { interestRate: 90, minStake: 200, maxStake: 4000 }
              });
              for(let n of initialNotices) { await setDoc(doc(db, 'notices', n.id), n); }
              for(let p of initialProducts) { await setDoc(doc(db, 'products', p.id), p); }
@@ -290,10 +293,11 @@ export const store = {
     const state = store.getState();
     updateLocalState({ ...state, ...settings });
     try {
-      const { supportLink, systemBalance } = settings;
+      const { supportLink, systemBalance, stakeSettings } = settings;
       const updates: any = {};
       if (supportLink !== undefined) updates.supportLink = supportLink;
       if (systemBalance !== undefined) updates.systemBalance = systemBalance;
+      if (stakeSettings !== undefined) updates.stakeSettings = stakeSettings;
       await setDoc(doc(db, 'config', 'system'), updates, { merge: true });
     } catch (e) { console.error("Error updating config", e); }
   },
