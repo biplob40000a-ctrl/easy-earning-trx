@@ -161,16 +161,22 @@ export default function AdminDashboard() {
 
   const openEditUser = (u: User) => {
     setEditingUser(u);
-    setUserForm({ balance: u.balance.toString(), vipLevel: u.vipLevel, password: u.password });
+    setUserForm({ balance: u.balance.toString(), vipLevel: u.vipLevel, password: u.password || '' });
   };
 
   const handleSaveUser = () => {
     if (editingUser) {
-      store.updateUser(editingUser.id, {
+      const updates: any = {
         balance: parseFloat(userForm.balance) || 0,
         vipLevel: userForm.vipLevel,
-        password: userForm.password || editingUser.password
-      });
+      };
+      
+      const newPass = userForm.password || editingUser.password;
+      if (newPass) {
+        updates.password = newPass;
+      }
+
+      store.updateUser(editingUser.id, updates);
       setEditingUser(null);
       refreshData();
     }

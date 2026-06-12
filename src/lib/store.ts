@@ -163,12 +163,19 @@ export const store = {
                 supportLink: 'https://t.me/easyearning_support', 
                 systemBalance: 0,
                 vipLevels: VIP_LEVELS,
-                stakeSettings: { interestRate: 90, minStake: 200, maxStake: 4000 }
+                stakeSettings: { interestRate: 2, minStake: 200, maxStake: 4000 }
              });
              for(let n of initialNotices) { await setDoc(doc(db, 'notices', n.id), n); }
              for(let p of initialProducts) { await setDoc(doc(db, 'products', p.id), p); }
              await setDoc(doc(db, 'paymentMethods', '2'), { name: 'Binance', network: 'TRC20', address: 'TBinanceAddress123456789' });
              await setDoc(doc(db, 'paymentMethods', '3'), { name: 'Bybit', network: 'TRC20', address: 'TBybitAddress123456789' });
+          } else {
+             // Sync VIP_LEVELS if they are the default ones but outdated (VIP 1 is 100 instead of 30)
+             const data = snap.data();
+             if (data.vipLevels && data.vipLevels.find((v: any) => v.level === 1 && v.price === 100)) {
+               const newVipLevels = data.vipLevels.map((v: any) => v.level === 1 ? { ...v, price: 30 } : v);
+               await setDoc(doc(db, 'config', 'system'), { vipLevels: newVipLevels }, { merge: true });
+             }
           }
        });
     }
