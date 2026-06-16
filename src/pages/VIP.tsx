@@ -37,6 +37,30 @@ export default function VIP() {
     }, 1500);
   };
 
+  const handleCancelPlan = (level: number, price: number) => {
+    if (!user) return;
+    const confirmCancel = window.confirm(`Are you sure you want to cancel VIP ${level}? You will be refunded ${price} TRX to your balance.`);
+    if (!confirmCancel) return;
+
+    setLoading(level);
+    setTimeout(() => {
+      store.updateUser(user.id, {
+        balance: user.balance + price,
+        vipLevel: 0
+      });
+      store.addTransaction({
+        userId: user.id,
+        type: 'refund',
+        amount: price,
+        status: 'completed',
+        description: `Refunded VIP ${level}`
+      });
+      refreshUser();
+      setLoading(null);
+      setMsg({ text: `VIP ${level} canceled. ${price} TRX refunded.`, type: 'success' });
+    }, 1500);
+  };
+
   const vipHistory = store.getState().transactions
     .filter(t => t.userId === user?.id && t.type === 'purchase')
     .sort((a, b) => b.timestamp - a.timestamp);
@@ -109,17 +133,29 @@ export default function VIP() {
                  </div>
                </div>
 
-               <button
-                 onClick={() => handlePurchase(vip.level, vip.price)}
-                 disabled={isLocked || loading === vip.level}
-                 className={`w-full py-3.5 rounded-xl font-bold transition-all ${
-                   isCurrent ? 'bg-brand-gold/10 text-brand-gold border border-brand-gold/30' :
-                   isLocked ? 'bg-[var(--color-border-card)] text-text-muted' :
-                   'bg-gradient-to-r from-brand-primary to-brand-gold text-black hover:opacity-90 shadow-[0_0_15px_rgba(255,90,0,0.2)]'
-                 }`}
-               >
-                 {loading === vip.level ? 'Processing...' : isCurrent ? 'Active Plan' : isLocked ? 'Unlocked' : `Unlock for ${formatTRX(vip.price)}`}
-               </button>
+               <div className="space-y-3">
+                 <button
+                   onClick={() => handlePurchase(vip.level, vip.price)}
+                   disabled={isLocked || loading === vip.level}
+                   className={`w-full py-3.5 rounded-xl font-bold transition-all ${
+                     isCurrent ? 'bg-brand-gold/10 text-brand-gold border border-brand-gold/30 cursor-default' :
+                     isLocked ? 'bg-[var(--color-border-card)] text-text-muted cursor-not-allowed' :
+                     'bg-gradient-to-r from-brand-primary to-brand-gold text-black hover:opacity-90 shadow-[0_0_15px_rgba(255,90,0,0.2)]'
+                   }`}
+                 >
+                   {loading === vip.level ? 'Processing...' : isCurrent ? 'Active Plan' : isLocked ? 'Unlocked' : `Unlock for ${formatTRX(vip.price)}`}
+                 </button>
+                 
+                 {isCurrent && (
+                   <button
+                     onClick={() => handleCancelPlan(vip.level, vip.price)}
+                     disabled={loading === vip.level}
+                     className="w-full py-3.5 rounded-xl font-bold transition-all bg-red-500/10 text-red-500 border border-red-500/30 hover:bg-red-500/20"
+                   >
+                     {loading === vip.level ? 'Processing...' : `Cancel Plan & Refund ${formatTRX(vip.price)} TRX`}
+                   </button>
+                 )}
+               </div>
              </motion.div>
            );
          })}

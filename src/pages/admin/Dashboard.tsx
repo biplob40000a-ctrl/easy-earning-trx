@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { store } from '../../lib/store';
 import { Transaction, User, Product } from '../../types';
 import { formatTRX, generateId } from '../../lib/utils';
-import { Users, CreditCard, Activity, Bell, Box, Edit, Trash, Plus, ShieldAlert, ShieldCheck, X } from 'lucide-react';
+import { Users, CreditCard, Activity, Bell, Box, Edit, Trash, Plus, ShieldAlert, ShieldCheck, X, Copy } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 export default function AdminDashboard() {
@@ -11,7 +11,7 @@ export default function AdminDashboard() {
   const [products, setProducts] = useState<Product[]>([]);
   const [userSearchQuery, setUserSearchQuery] = useState('');
   
-  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'products' | 'stakes' | 'finances' | 'settings'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'products' | 'stakes' | 'deposits' | 'withdrawals' | 'settings'>('overview');
   
   // Product Edit Modal
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -220,7 +220,8 @@ export default function AdminDashboard() {
             <TabButton active={activeTab === 'users'} onClick={() => setActiveTab('users')} label="Users" />
             <TabButton active={activeTab === 'products'} onClick={() => setActiveTab('products')} label="Products" />
             <TabButton active={activeTab === 'stakes'} onClick={() => setActiveTab('stakes')} label="Stakes" />
-            <TabButton active={activeTab === 'finances'} onClick={() => setActiveTab('finances')} label="Finances" />
+            <TabButton active={activeTab === 'deposits'} onClick={() => setActiveTab('deposits')} label="Deposits" />
+            <TabButton active={activeTab === 'withdrawals'} onClick={() => setActiveTab('withdrawals')} label="Withdrawals" />
             <TabButton active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} label="Settings" />
          </div>
       </div>
@@ -282,30 +283,38 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {activeTab === 'finances' && (
+      {activeTab === 'deposits' && (
         <div className="glass-panel p-6 rounded-3xl overflow-x-auto">
-          <h2 className="text-xl font-bold mb-6">Financial Requests</h2>
+          <h2 className="text-xl font-bold mb-6">Deposit Requests</h2>
           <table className="w-full text-left text-sm">
              <thead>
                <tr className="text-text-muted border-b border-[var(--color-border-card)]">
                  <th className="pb-3 font-medium">Date</th>
                  <th className="pb-3 font-medium">User ID</th>
-                 <th className="pb-3 font-medium">Type</th>
-                 <th className="pb-3 font-medium">Details / Address</th>
+                 <th className="pb-3 font-medium">Transaction ID</th>
                  <th className="pb-3 font-medium">Amount</th>
                  <th className="pb-3 font-medium">Status</th>
                  <th className="pb-3 font-medium text-right">Actions</th>
                </tr>
              </thead>
              <tbody className="divide-y divide-[var(--color-border-card)]">
-               {txs.filter(t => t.type === 'deposit' || t.type === 'withdraw').sort((a,b) => b.timestamp - a.timestamp).map(tx => {
+               {txs.filter(t => t.type === 'deposit').sort((a,b) => b.timestamp - a.timestamp).map(tx => {
                  const u = users.find(u => u.id === tx.userId);
+                 const txId = tx.description || tx.address || '-';
                  return (
                  <tr key={tx.id} className="hover:bg-[var(--color-bg-base)] transition-colors">
                    <td className="py-4 text-text-muted text-xs">{new Date(tx.timestamp).toLocaleString()}</td>
                    <td className="py-4 font-medium">{u?.username || tx.userId.substring(0,6)}</td>
-                   <td className="py-4 uppercase text-xs font-bold">{tx.type}</td>
-                   <td className="py-4 text-xs text-text-muted max-w-[150px] truncate" title={tx.address || tx.description}>{tx.address || tx.description || '-'}</td>
+                   <td className="py-4 text-xs">
+                     <div className="flex items-center gap-2">
+                       <span className="max-w-[150px] truncate" title={txId}>{txId}</span>
+                       {txId !== '-' && (
+                         <button onClick={() => { navigator.clipboard.writeText(txId); alert('Transaction ID copied!'); }} className="text-text-muted hover:text-white p-1">
+                           <Copy size={14} />
+                         </button>
+                       )}
+                     </div>
+                   </td>
                    <td className="py-4 font-bold text-brand-gold">{formatTRX(tx.amount)}</td>
                    <td className="py-4">
                      <span className={`px-2 py-1 rounded text-xs font-bold uppercase ${
@@ -318,10 +327,10 @@ export default function AdminDashboard() {
                    <td className="py-4 text-right space-x-2">
                      {tx.status === 'pending' && (
                        <div className="flex justify-end gap-2">
-                         <button onClick={() => tx.type === 'deposit' ? handleApproveDeposit(tx) : handleApproveWithdraw(tx)} className="p-1.5 px-3 text-xs bg-green-500/10 text-green-500 font-bold hover:bg-green-500/20 rounded-lg">
+                         <button onClick={() => handleApproveDeposit(tx)} className="p-1.5 px-3 text-xs bg-green-500/10 text-green-500 font-bold hover:bg-green-500/20 rounded-lg">
                            Approve
                          </button>
-                         <button onClick={() => tx.type === 'deposit' ? handleRejectDeposit(tx) : handleRejectWithdraw(tx)} className="p-1.5 px-3 text-xs bg-red-500/10 text-red-500 font-bold hover:bg-red-500/20 rounded-lg">
+                         <button onClick={() => handleRejectDeposit(tx)} className="p-1.5 px-3 text-xs bg-red-500/10 text-red-500 font-bold hover:bg-red-500/20 rounded-lg">
                            Reject
                          </button>
                        </div>
@@ -329,6 +338,76 @@ export default function AdminDashboard() {
                    </td>
                  </tr>
                )})}
+               {txs.filter(t => t.type === 'deposit').length === 0 && (
+                 <tr>
+                   <td colSpan={6} className="py-8 text-center text-text-muted">No deposit requests found.</td>
+                 </tr>
+               )}
+             </tbody>
+          </table>
+        </div>
+      )}
+
+      {activeTab === 'withdrawals' && (
+        <div className="glass-panel p-6 rounded-3xl overflow-x-auto">
+          <h2 className="text-xl font-bold mb-6">Withdrawal Requests</h2>
+          <table className="w-full text-left text-sm">
+             <thead>
+               <tr className="text-text-muted border-b border-[var(--color-border-card)]">
+                 <th className="pb-3 font-medium">Date</th>
+                 <th className="pb-3 font-medium">User ID</th>
+                 <th className="pb-3 font-medium">Withdraw Address</th>
+                 <th className="pb-3 font-medium">Amount</th>
+                 <th className="pb-3 font-medium">Status</th>
+                 <th className="pb-3 font-medium text-right">Actions</th>
+               </tr>
+             </thead>
+             <tbody className="divide-y divide-[var(--color-border-card)]">
+               {txs.filter(t => t.type === 'withdraw').sort((a,b) => b.timestamp - a.timestamp).map(tx => {
+                 const u = users.find(u => u.id === tx.userId);
+                 const address = tx.address || tx.description || '-';
+                 return (
+                 <tr key={tx.id} className="hover:bg-[var(--color-bg-base)] transition-colors">
+                   <td className="py-4 text-text-muted text-xs">{new Date(tx.timestamp).toLocaleString()}</td>
+                   <td className="py-4 font-medium">{u?.username || tx.userId.substring(0,6)}</td>
+                   <td className="py-4 text-xs">
+                     <div className="flex items-center gap-2">
+                       <span className="max-w-[200px] truncate" title={address}>{address}</span>
+                       {address !== '-' && (
+                         <button onClick={() => { navigator.clipboard.writeText(address); alert('Address copied!'); }} className="text-text-muted hover:text-white p-1">
+                           <Copy size={14} />
+                         </button>
+                       )}
+                     </div>
+                   </td>
+                   <td className="py-4 font-bold text-brand-gold">{formatTRX(tx.amount)}</td>
+                   <td className="py-4">
+                     <span className={`px-2 py-1 rounded text-xs font-bold uppercase ${
+                       tx.status === 'pending' ? 'bg-yellow-500/10 text-yellow-500' :
+                       tx.status === 'completed' ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'
+                     }`}>
+                       {tx.status}
+                     </span>
+                   </td>
+                   <td className="py-4 text-right space-x-2">
+                     {tx.status === 'pending' && (
+                       <div className="flex justify-end gap-2">
+                         <button onClick={() => handleApproveWithdraw(tx)} className="p-1.5 px-3 text-xs bg-green-500/10 text-green-500 font-bold hover:bg-green-500/20 rounded-lg">
+                           Approve
+                         </button>
+                         <button onClick={() => handleRejectWithdraw(tx)} className="p-1.5 px-3 text-xs bg-red-500/10 text-red-500 font-bold hover:bg-red-500/20 rounded-lg">
+                           Reject
+                         </button>
+                       </div>
+                     )}
+                   </td>
+                 </tr>
+               )})}
+               {txs.filter(t => t.type === 'withdraw').length === 0 && (
+                 <tr>
+                   <td colSpan={6} className="py-8 text-center text-text-muted">No withdrawal requests found.</td>
+                 </tr>
+               )}
              </tbody>
           </table>
         </div>
