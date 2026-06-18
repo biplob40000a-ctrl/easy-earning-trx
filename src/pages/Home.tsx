@@ -69,11 +69,11 @@ function NewsOffersSection({ state }: { state: any }) {
       className="space-y-3"
     >
       {/* Top Main Banner - Events/News */}
-      <div className="rounded-2xl overflow-hidden shadow-lg relative flex flex-col h-32 md:h-40" style={{ backgroundImage: `url(${heroBg})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
-         <div className="absolute inset-0 bg-black/60 md:bg-black/40 bg-gradient-to-t from-black/90 to-transparent" />
+      <div className="rounded-2xl overflow-hidden shadow-lg relative flex flex-col min-h-[180px] md:min-h-[200px]" style={{ backgroundImage: `url(${heroBg})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
+         <div className="absolute inset-0 bg-black/60 md:bg-black/40 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
          
          <div className="relative z-10 flex-1 min-w-0 flex flex-col p-4 justify-end">
-             <div className="flex justify-between items-center mb-1">
+             <div className="flex justify-between items-center mb-2">
                 <div className="flex items-center gap-1.5 text-xs text-[#00FFFF] font-bold tracking-wide uppercase drop-shadow">
                   <Megaphone size={14} className="text-[#00FFFF]" />
                   Live Updates
@@ -90,46 +90,48 @@ function NewsOffersSection({ state }: { state: any }) {
              >
                 {newsItems.map((item, i) => (
                   <div key={i} className="min-w-full snap-center flex flex-col justify-end pr-2 h-full">
-                     <p className="text-white text-[15px] font-bold leading-snug whitespace-pre-wrap line-clamp-2 drop-shadow-md">
-                       {item.title ? <span className="text-brand-primary mr-1 drop-shadow">{item.title}:</span> : ''}
-                       {item.text}
-                     </p>
+                     <div className="max-h-[100px] overflow-y-auto pr-1 custom-scrollbar">
+                       <p className="text-white text-[14px] md:text-[15px] font-medium leading-snug whitespace-pre-wrap drop-shadow-md">
+                         {item.title ? <span className="text-brand-primary font-bold mr-1 drop-shadow">{item.title}:</span> : ''}
+                         {item.text}
+                       </p>
+                     </div>
                   </div>
                 ))}
              </div>
          </div>
       </div>
 
-      {/* Bottom Sub-Offers Grid */}
-      <div className="grid grid-cols-2 gap-3">
-         <Link to="/team" className="bg-[#121214] border border-[#2A2A32] rounded-2xl p-4 flex flex-col shadow-lg relative group overflow-hidden transition-colors hover:bg-[#16161A]">
-            <div className="absolute inset-0 bg-gradient-to-br from-brand-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+      {/* Bottom Sub-Offers Horizontal Scroll */}
+      <div className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide gap-3 pb-2 -mx-4 px-4 sm:mx-0 sm:px-0">
+         <Link to="/team" className="snap-center min-w-[260px] sm:min-w-[300px] flex-shrink-0 bg-[var(--color-bg-card)] border border-[var(--color-border-card)] rounded-2xl p-4 flex flex-col shadow-lg relative group overflow-hidden transition-colors hover:bg-[var(--color-bg-card-hover)]">
+            <div className="absolute inset-0 bg-gradient-to-br from-brand-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
             <div className="text-[11px] text-brand-primary mb-1.5 font-bold tracking-wide text-left uppercase flex items-center gap-1">
               <Users size={12} /> Invite & Earn
             </div>
-            <div className="text-[#A0A0A0] font-medium text-[10px] mb-3 leading-snug text-left whitespace-pre-wrap line-clamp-5">
+            <div className="text-[var(--color-text-main)] font-medium text-xs mb-3 leading-snug text-left whitespace-pre-wrap">
               {state.referralBonusText || "Invite friends and earn rewards!\n\n• 50 Active Referrals = 100 TRX Bonus\n• 100 Active Referrals = 200 TRX Bonus\n• 500 Active Referrals = 1,000 TRX Bonus"}
             </div>
             
             <div className="mt-auto pt-2 flex items-center gap-1.5 text-[11px] font-bold text-white relative z-10 w-fit cursor-pointer group/btn uppercase tracking-wider">
-               <div className="w-5 h-5 rounded-full bg-brand-primary flex items-center justify-center shrink-0 shadow-[0_0_10px_rgba(255,90,0,0.5)]">
+               <div className="w-5 h-5 rounded-full bg-brand-primary flex items-center justify-center shrink-0 shadow-[0_0_10px_rgba(0,240,255,0.5)]">
                  <ArrowUpRight size={12} className="text-white" />
                </div>
                Join Now
             </div>
          </Link>
          
-         <Link to="/recharge" className="bg-[#121214] border border-[#2A2A32] rounded-2xl p-4 flex flex-col shadow-lg relative group overflow-hidden transition-colors hover:bg-[#16161A]">
-            <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-            <div className="text-[11px] text-green-500 mb-1.5 font-bold tracking-wide text-left uppercase flex items-center gap-1">
+         <Link to="/recharge" className="snap-center min-w-[260px] sm:min-w-[300px] flex-shrink-0 bg-[var(--color-bg-card)] border border-[var(--color-border-card)] rounded-2xl p-4 flex flex-col shadow-lg relative group overflow-hidden transition-colors hover:bg-[var(--color-bg-card-hover)]">
+            <div className="absolute inset-0 bg-gradient-to-br from-[#10B981]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="text-[11px] text-[#10B981] mb-1.5 font-bold tracking-wide text-left uppercase flex items-center gap-1">
               <DollarSign size={12} /> Deposit Bonus
             </div>
-            <div className="text-[#A0A0A0] font-medium text-[10px] mb-3 leading-snug text-left whitespace-pre-wrap line-clamp-5">
+            <div className="text-[var(--color-text-main)] font-medium text-xs mb-3 leading-snug text-left whitespace-pre-wrap">
               {state.depositBonusText || "Top up your account to unlock additional TRX Rewards tailored for new members.\n\n• Deposit 100 TRX = 10% Bonus\n• Deposit 500 TRX = 15% Bonus\n• Deposit 1000+ TRX = 20% Bonus"}
             </div>
             
             <div className="mt-auto pt-2 flex items-center gap-1.5 text-[11px] font-bold text-white relative z-10 w-fit cursor-pointer group/btn uppercase tracking-wider">
-               <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center shrink-0 shadow-[0_0_10px_rgba(34,197,94,0.5)]">
+               <div className="w-5 h-5 rounded-full bg-[#10B981] flex items-center justify-center shrink-0 shadow-[0_0_10px_rgba(16,185,129,0.5)]">
                  <ArrowDownRight size={12} className="text-white" />
                </div>
                Get Bonus
@@ -182,7 +184,7 @@ export default function Home() {
       <motion.div 
          initial={{ scale: 0.95, opacity: 0 }} 
          animate={{ scale: 1, opacity: 1 }}
-         className="relative rounded-3xl p-6 overflow-hidden bg-gradient-to-br from-[#FF0013] to-[#CC000F] shadow-[0_15px_35px_-10px_rgba(255,0,19,0.4)]"
+         className="relative rounded-3xl p-6 overflow-hidden bg-gradient-to-br from-[#FF0013] to-[#80000A] shadow-[0_15px_35px_-10px_rgba(255,0,19,0.4)] backdrop-blur-md"
       >
          <div className="absolute top-0 right-0 p-4 opacity-20">
            <svg width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 2 12 12 22 22 12 12 2"/></svg>

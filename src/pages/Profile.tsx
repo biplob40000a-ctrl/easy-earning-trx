@@ -59,7 +59,7 @@ export default function Profile() {
       )}
 
       {/* Profile Header */}
-      <div className="glass-panel p-6 rounded-3xl flex items-center gap-4 relative overflow-hidden bg-gradient-to-r from-[var(--color-bg-card)] to-[#1E1500]">
+      <div className="glass-panel p-6 rounded-3xl flex items-center gap-4 relative overflow-hidden bg-gradient-to-r from-[var(--color-bg-card)] to-[var(--color-bg-base)]">
         <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-brand-primary to-brand-gold flex items-center justify-center font-bold text-2xl text-black">
           {user.username.charAt(0).toUpperCase()}
         </div>
@@ -74,12 +74,13 @@ export default function Profile() {
 
       {/* Action Stats */}
       <div className="grid grid-cols-2 gap-4">
-         <div className="glass-panel p-4 rounded-3xl flex items-center justify-between">
-           <div>
-             <div className="text-sm text-text-muted mb-1">Total Assets</div>
-             <div className="font-bold text-lg">{formatTRX(user.balance)}</div>
+         <div className="relative rounded-3xl p-4 overflow-hidden bg-gradient-to-br from-[#FF0013] to-[#80000A] shadow-[0_10px_20px_-5px_rgba(255,0,19,0.4)] flex items-center justify-between">
+           <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent pointer-events-none"></div>
+           <div className="relative z-10">
+             <div className="text-sm font-medium mb-1 text-white/80">Total Assets</div>
+             <div className="font-bold text-lg text-white drop-shadow-sm">{formatTRX(user.balance)}</div>
            </div>
-           <Wallet className="text-brand-primary opacity-50" size={32} />
+           <Wallet className="text-white opacity-90 drop-shadow-md relative z-10" size={32} />
          </div>
          <div className="glass-panel p-4 rounded-3xl flex items-center justify-between">
            <div>

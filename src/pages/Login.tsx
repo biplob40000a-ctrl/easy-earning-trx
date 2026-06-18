@@ -122,7 +122,7 @@ export default function Login() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full bg-gradient-to-r from-brand-primary to-brand-gold text-black font-bold py-3.5 rounded-xl text-lg hover:opacity-90 active:scale-[0.98] transition-all shadow-[0_0_20px_rgba(255,0,19,0.3)] mt-2 disabled:opacity-50"
+            className="w-full bg-gradient-to-r from-brand-primary to-brand-gold text-black font-bold py-3.5 rounded-xl text-lg hover:opacity-90 active:scale-[0.98] transition-all shadow-[0_0_20px_rgba(0,240,255,0.3)] mt-2 disabled:opacity-50"
           >
             {isSubmitting ? 'Logging in...' : 'Login'}
           </button>

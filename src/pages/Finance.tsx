@@ -97,9 +97,12 @@ export default function Finance() {
         </button>
       </div>
 
-      <div className="glass-panel p-6 rounded-3xl mb-6">
-         <div className="text-sm text-text-muted mb-1">Available Balance</div>
-         <div className="text-3xl font-bold text-gradient-gold">{formatTRX(user?.balance || 0)}</div>
+      <div className="relative rounded-3xl p-6 mb-6 overflow-hidden bg-gradient-to-br from-[#FF0013] to-[#80000A] shadow-[0_15px_35px_-10px_rgba(255,0,19,0.4)]">
+         <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent pointer-events-none"></div>
+         <div className="relative z-10">
+           <div className="text-sm font-medium mb-1 text-white/80">Available Balance</div>
+           <div className="text-4xl font-bold text-white drop-shadow-md">{formatTRX(user?.balance || 0)}</div>
+         </div>
       </div>
 
       {msg && (

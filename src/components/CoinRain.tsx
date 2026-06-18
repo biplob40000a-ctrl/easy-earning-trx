@@ -21,7 +21,7 @@ export default function CoinRain() {
       {coins.map(coin => (
         <motion.div
           key={coin.id}
-          className="absolute top-[-50px] flex items-center justify-center text-brand-primary drop-shadow-[0_0_5px_rgba(255,0,19,0.5)]"
+          className="absolute top-[-50px] flex items-center justify-center text-brand-primary drop-shadow-[0_0_5px_rgba(0,240,255,0.5)]"
           style={{
             left: `${coin.left}%`,
             width: `${coin.size}px`,

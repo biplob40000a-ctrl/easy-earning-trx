@@ -99,7 +99,7 @@ export default function VIP() {
                animate={{ opacity: 1, y: 0 }}
                transition={{ delay: i * 0.1 }}
                key={vip.level} 
-               className={`relative overflow-hidden rounded-[2rem] p-6 border ${isCurrent ? 'border-brand-gold bg-gradient-to-br from-[#1E1700] to-[#0A0800]' : 'border-[var(--color-border-card)] glass-panel'}`}
+               className={`relative overflow-hidden rounded-[2rem] p-6 border transition-all ${isCurrent ? 'border-brand-primary bg-gradient-to-br from-brand-primary/20 to-[var(--color-bg-base)] shadow-[0_0_20px_rgba(0,240,255,0.15)]' : 'border-[var(--color-border-card)] glass-panel'}`}
              >
                {isCurrent && (
                  <div className="absolute top-0 right-0 bg-brand-gold text-black text-xs font-bold px-3 py-1 rounded-bl-xl">
@@ -146,7 +146,7 @@ export default function VIP() {
                    {loading === vip.level ? 'Processing...' : isCurrent ? 'Active Plan' : isLocked ? 'Unlocked' : `Unlock for ${formatTRX(vip.price)}`}
                  </button>
                  
-                 {isCurrent && (
+                 {isCurrent && vip.level > 0 && (
                    <button
                      onClick={() => handleCancelPlan(vip.level, vip.price)}
                      disabled={loading === vip.level}

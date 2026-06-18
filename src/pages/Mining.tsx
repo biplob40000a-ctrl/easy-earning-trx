@@ -135,7 +135,7 @@ export default function Mining() {
          onClickOverride={() => {}} 
        />
 
-       <div className="glass-panel p-8 rounded-[2.5rem] flex flex-col items-center relative overflow-hidden border-brand-primary/20 bg-gradient-to-b from-[var(--color-bg-card)] to-[#111]">
+       <div className="glass-panel p-8 rounded-[2.5rem] flex flex-col items-center relative overflow-hidden border-brand-primary/20 bg-gradient-to-b from-[var(--color-bg-card)] to-[var(--color-bg-base)]">
          <div className="absolute top-[-50px] w-40 h-40 bg-brand-primary/20 blur-[60px] rounded-full pointer-events-none" />
          
          <div className="text-sm font-medium text-brand-gold mb-2 border border-brand-gold/30 px-3 py-1 rounded-full bg-brand-gold/10 z-10">
@@ -161,16 +161,16 @@ export default function Mining() {
                     transition={{ repeat: Infinity, duration: 1, repeatType: "mirror" }}
                     className="absolute bottom-10 left-1/2 -translate-x-1/2"
                   >
-                    <div className="w-20 h-20 bg-red-600/20 rotate-45 border-2 border-red-500 flex items-center justify-center shadow-[0_0_30px_rgba(255,0,0,0.5)]">
-                      <div className="w-10 h-10 bg-red-500 rotate-0 flex items-center justify-center">
-                        <span className="text-white font-bold transform -rotate-45">TRX</span>
+                    <div className="w-20 h-20 bg-brand-primary/20 rotate-45 border-2 border-brand-primary flex items-center justify-center shadow-[0_0_30px_rgba(0,240,255,0.5)]">
+                      <div className="w-10 h-10 bg-brand-primary rotate-0 flex items-center justify-center">
+                        <span className="text-black font-bold transform -rotate-45">TRX</span>
                       </div>
                     </div>
                   </motion.div>
 
                   {/* Pickaxe */}
                   <motion.div 
-                    className="absolute bottom-20 left-16 text-red-500 z-10 drop-shadow-[0_0_10px_rgba(255,0,0,1)]"
+                    className="absolute bottom-20 left-16 text-brand-primary z-10 drop-shadow-[0_0_10px_rgba(0,240,255,1)]"
                     animate={{ rotate: [-20, 60, -20] }}
                     transition={{ repeat: Infinity, duration: 0.4, ease: "linear" }}
                     style={{ transformOrigin: "bottom right" }}
@@ -180,14 +180,14 @@ export default function Mining() {
 
                   {/* Flying TRX Coins */}
                   <motion.div
-                    className="absolute bottom-12 right-12 text-xl font-bold rounded-full w-8 h-8 flex items-center justify-center border border-red-500 text-red-500 bg-[#111]"
+                    className="absolute bottom-12 right-12 text-xl font-bold rounded-full w-8 h-8 flex items-center justify-center border border-brand-primary text-brand-primary bg-[var(--color-bg-base)] shadow-[0_0_10px_var(--color-brand-primary)]"
                     animate={{ y: [0, -80, -120], x: [0, 40, 80], opacity: [1, 1, 0], scale: [1, 1.5, 0.5], rotate: [0, 180, 360] }}
                     transition={{ repeat: Infinity, duration: 0.6, ease: "easeOut" }}
                   >
                     T
                   </motion.div>
                   <motion.div
-                    className="absolute bottom-10 left-1/4 text-sm font-bold rounded-full w-6 h-6 flex items-center justify-center border border-red-500 text-red-500 bg-[#111]"
+                    className="absolute bottom-10 left-1/4 text-sm font-bold rounded-full w-6 h-6 flex items-center justify-center border border-brand-primary text-brand-primary bg-[var(--color-bg-base)] shadow-[0_0_10px_var(--color-brand-primary)]"
                     animate={{ y: [0, -60, -100], x: [0, -30, -60], opacity: [1, 1, 0], scale: [0.8, 1.2, 0.5], rotate: [0, -180, -360] }}
                     transition={{ repeat: Infinity, duration: 0.5, ease: "easeOut", delay: 0.2 }}
                   >
@@ -195,7 +195,7 @@ export default function Mining() {
                   </motion.div>
                 </div>
                 <div className="absolute top-0 w-full text-center flex flex-col items-center gap-1">
-                  <span className="font-bold text-red-500 text-lg bg-[#111] px-4 py-1 rounded-full border border-red-500/30 shadow-[0_0_15px_rgba(255,0,0,0.5)]">
+                  <span className="font-bold text-brand-primary text-lg bg-[var(--color-bg-base)] px-4 py-1 rounded-full border border-brand-primary/30 shadow-[0_0_15px_rgba(0,240,255,0.3)]">
                     Mining Active
                   </span>
                   <span className="text-white font-mono text-xl font-bold drop-shadow-md">
@@ -230,7 +230,7 @@ export default function Mining() {
             >
               {status === 'idle' ? (
                 <>
-                  <Pickaxe size={48} className="text-brand-primary drop-shadow-[0_0_10px_rgba(255,0,0,0.8)]" />
+                  <Pickaxe size={48} className="text-brand-primary drop-shadow-[0_0_10px_rgba(0,240,255,0.8)]" />
                   <span className="font-bold text-lg leading-tight uppercase mt-2 text-brand-primary">Start<br/>Mining</span>
                 </>
               ) : status === 'claim' ? (
