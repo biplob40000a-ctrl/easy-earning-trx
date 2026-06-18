@@ -69,16 +69,16 @@ function NewsOffersSection({ state }: { state: any }) {
       className="space-y-3"
     >
       {/* Top Main Banner - Events/News */}
-      <div className="rounded-2xl overflow-hidden shadow-lg relative flex flex-col min-h-[180px] md:min-h-[200px]" style={{ backgroundImage: `url(${heroBg})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
-         <div className="absolute inset-0 bg-black/60 md:bg-black/40 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
+      <div className="rounded-3xl overflow-hidden shadow-[0_0_30px_rgba(0,240,255,0.15)] border border-[#00FFFF]/20 relative flex flex-col min-h-[220px] transition-all hover:shadow-[0_0_40px_rgba(0,240,255,0.25)]" style={{ backgroundImage: `url(${heroBg})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
+         <div className="absolute inset-0 bg-black/30 bg-gradient-to-t from-black/80 via-black/20 to-black/40" />
          
-         <div className="relative z-10 flex-1 min-w-0 flex flex-col p-4 justify-end">
-             <div className="flex justify-between items-center mb-2">
-                <div className="flex items-center gap-1.5 text-xs text-[#00FFFF] font-bold tracking-wide uppercase drop-shadow">
-                  <Megaphone size={14} className="text-[#00FFFF]" />
+         <div className="relative z-10 flex-1 min-w-0 flex flex-col p-5 justify-start">
+             <div className="flex justify-between items-center mb-4">
+                <div className="flex items-center gap-2 text-sm text-[#00FFFF] font-bold tracking-wide uppercase drop-shadow">
+                  <Megaphone size={16} className="text-[#00FFFF]" />
                   Live Updates
                 </div>
-                <div className="bg-black/50 px-2 py-0.5 rounded backdrop-blur-md text-[10px] text-white/80 font-mono font-medium">
+                <div className="bg-black/60 border border-white/10 px-2.5 py-1 rounded-md backdrop-blur-md text-[11px] text-white/90 font-mono font-medium">
                   {newsItems.length > 0 ? `${currentNews + 1}/${newsItems.length}` : '0/0'}
                 </div>
              </div>
@@ -86,57 +86,20 @@ function NewsOffersSection({ state }: { state: any }) {
              <div 
                ref={scrollRef}
                onScroll={handleScroll}
-               className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide -mx-1 px-1"
+               className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide -mx-1 px-1 flex-1 items-start"
              >
                 {newsItems.map((item, i) => (
-                  <div key={i} className="min-w-full snap-center flex flex-col justify-end pr-2 h-full">
-                     <div className="max-h-[100px] overflow-y-auto pr-1 custom-scrollbar">
-                       <p className="text-white text-[14px] md:text-[15px] font-medium leading-snug whitespace-pre-wrap drop-shadow-md">
-                         {item.title ? <span className="text-brand-primary font-bold mr-1 drop-shadow">{item.title}:</span> : ''}
-                         {item.text}
+                  <div key={i} className="min-w-full snap-center flex flex-col justify-start pr-2">
+                     <div className="max-h-[140px] overflow-y-auto pr-2 custom-scrollbar">
+                       <p className="text-white text-[15px] md:text-[17px] font-medium leading-relaxed whitespace-pre-wrap drop-shadow-md">
+                         {item.title ? <span className="text-[#00FFFF] font-bold mr-2 text-[16px] md:text-[18px] drop-shadow">{item.title}:</span> : ''}
+                         <span className="text-white/95">{item.text}</span>
                        </p>
                      </div>
                   </div>
                 ))}
              </div>
          </div>
-      </div>
-
-      {/* Bottom Sub-Offers Horizontal Scroll */}
-      <div className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide gap-3 pb-2 -mx-4 px-4 sm:mx-0 sm:px-0">
-         <Link to="/team" className="snap-center min-w-[260px] sm:min-w-[300px] flex-shrink-0 bg-[var(--color-bg-card)] border border-[var(--color-border-card)] rounded-2xl p-4 flex flex-col shadow-lg relative group overflow-hidden transition-colors hover:bg-[var(--color-bg-card-hover)]">
-            <div className="absolute inset-0 bg-gradient-to-br from-brand-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-            <div className="text-[11px] text-brand-primary mb-1.5 font-bold tracking-wide text-left uppercase flex items-center gap-1">
-              <Users size={12} /> Invite & Earn
-            </div>
-            <div className="text-[var(--color-text-main)] font-medium text-xs mb-3 leading-snug text-left whitespace-pre-wrap">
-              {state.referralBonusText || "Invite friends and earn rewards!\n\n• 50 Active Referrals = 100 TRX Bonus\n• 100 Active Referrals = 200 TRX Bonus\n• 500 Active Referrals = 1,000 TRX Bonus"}
-            </div>
-            
-            <div className="mt-auto pt-2 flex items-center gap-1.5 text-[11px] font-bold text-white relative z-10 w-fit cursor-pointer group/btn uppercase tracking-wider">
-               <div className="w-5 h-5 rounded-full bg-brand-primary flex items-center justify-center shrink-0 shadow-[0_0_10px_rgba(0,240,255,0.5)]">
-                 <ArrowUpRight size={12} className="text-white" />
-               </div>
-               Join Now
-            </div>
-         </Link>
-         
-         <Link to="/recharge" className="snap-center min-w-[260px] sm:min-w-[300px] flex-shrink-0 bg-[var(--color-bg-card)] border border-[var(--color-border-card)] rounded-2xl p-4 flex flex-col shadow-lg relative group overflow-hidden transition-colors hover:bg-[var(--color-bg-card-hover)]">
-            <div className="absolute inset-0 bg-gradient-to-br from-[#10B981]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-            <div className="text-[11px] text-[#10B981] mb-1.5 font-bold tracking-wide text-left uppercase flex items-center gap-1">
-              <DollarSign size={12} /> Deposit Bonus
-            </div>
-            <div className="text-[var(--color-text-main)] font-medium text-xs mb-3 leading-snug text-left whitespace-pre-wrap">
-              {state.depositBonusText || "Top up your account to unlock additional TRX Rewards tailored for new members.\n\n• Deposit 100 TRX = 10% Bonus\n• Deposit 500 TRX = 15% Bonus\n• Deposit 1000+ TRX = 20% Bonus"}
-            </div>
-            
-            <div className="mt-auto pt-2 flex items-center gap-1.5 text-[11px] font-bold text-white relative z-10 w-fit cursor-pointer group/btn uppercase tracking-wider">
-               <div className="w-5 h-5 rounded-full bg-[#10B981] flex items-center justify-center shrink-0 shadow-[0_0_10px_rgba(16,185,129,0.5)]">
-                 <ArrowDownRight size={12} className="text-white" />
-               </div>
-               Get Bonus
-            </div>
-         </Link>
       </div>
     </motion.div>
   );
