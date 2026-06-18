@@ -71,9 +71,7 @@ export default function Login() {
         className="w-full max-w-md glass-panel p-8 rounded-3xl relative z-10"
       >
         <div className="flex flex-col items-center mb-8">
-          <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-brand-primary to-brand-gold flex items-center justify-center font-bold text-2xl text-black drop-shadow-[0_0_15px_rgba(255,90,0,0.6)] mb-4">
-            TRX
-          </div>
+          <img src="/trx-logo.svg" alt="TRX Hub" className="w-16 h-16 rounded-full mb-4 drop-shadow-[0_0_15px_rgba(255,90,0,0.6)]" />
           <h1 className="text-2xl font-bold">Welcome Back</h1>
           <p className="text-text-muted mt-1 text-sm">Sign in to continue earning</p>
         </div>

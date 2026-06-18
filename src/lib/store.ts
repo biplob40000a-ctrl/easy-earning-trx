@@ -3,7 +3,7 @@ import { generateId } from './utils';
 import { db, auth } from './firebase';
 import { doc, getDoc, setDoc, onSnapshot, collection, query, where, deleteDoc } from 'firebase/firestore';
 
-const STORE_KEY = 'easy_earning_trx_db_v2';
+const STORE_KEY = 'trx_hub_db_v2';
 let unsubscribers: (() => void)[] = [];
 
 // Fallback initial data (only used if Firebase doesn't load)
@@ -20,7 +20,7 @@ export const VIP_LEVELS: VIPLevel[] = [
 ];
 
 const initialNotices: Notice[] = [
-  { id: '1', text: 'Welcome to Easy Earning TRX! Join our Telegram for daily signals.', isActive: true, timestamp: Date.now() },
+  { id: '1', text: 'Welcome to TRX Hub! Join our Telegram for daily signals.', isActive: true, timestamp: Date.now() },
   { id: '2', text: 'VIP 3 upgrade now gives 10% extra daily bonus until the end of the month!', isActive: true, timestamp: Date.now() },
 ];
 
@@ -37,7 +37,7 @@ const defaultState: AppState = {
   systemBalance: 0,
   products: initialProducts,
   orders: [],
-  supportLink: 'https://t.me/easyearning_support',
+  supportLink: 'https://t.me/trxhub_support',
   vipLevels: VIP_LEVELS,
   paymentMethods: [
     { id: '2', name: 'Binance', network: 'TRC20', address: 'TBinanceAddress123456789' },
@@ -45,6 +45,13 @@ const defaultState: AppState = {
   ],
   stakes: [],
   stakeSettings: { interestRate: 90, minStake: 200, maxStake: 4000 },
+  banners: [
+    'https://images.unsplash.com/photo-1621416894569-0f39ed31d247?auto=format&fit=crop&q=80&w=600&h=300'
+  ],
+  billboardText: 'Welcome to TRX Hub! Start your earning journey today.',
+  billboardEnabled: true,
+  referralBonusText: "Invite friends and earn rewards!\n\n• 50 Active Referrals = 100 TRX Bonus\n• 100 Active Referrals = 200 TRX Bonus\n• 500 Active Referrals = 1,000 TRX Bonus\n\n*Note: Active referrals mean your friends must make a deposit.",
+  depositBonusText: "Top up your account to unlock additional TRX Rewards tailored for new members.\n\n• Deposit 100 TRX = 10% Bonus\n• Deposit 500 TRX = 15% Bonus\n• Deposit 1000+ TRX = 20% Bonus",
 };
 
 function updateLocalState(updates: Partial<AppState>) {
@@ -78,7 +85,7 @@ export const store = {
     // Check user role
     let isAdmin = false;
     const user = auth.currentUser;
-    if (user && (user.email === 'biplob40000a@gmail.com' || user.email === 'admin@easyearning.com')) {
+    if (user && (user.email === 'biplob40000a@gmail.com' || user.email === 'admin@trxhub.com')) {
       isAdmin = true;
     } else {
       const userDocRef = doc(db, 'users', uid);
@@ -140,7 +147,12 @@ export const store = {
           supportLink: data.supportLink,
           systemBalance: data.systemBalance,
           vipLevels: data.vipLevels || VIP_LEVELS,
-          stakeSettings: data.stakeSettings || { interestRate: 90, minStake: 200, maxStake: 4000 }
+          stakeSettings: data.stakeSettings || { interestRate: 90, minStake: 200, maxStake: 4000 },
+          banners: data.banners || [],
+          billboardText: data.billboardText !== undefined ? data.billboardText : 'Welcome to TRX Hub! Start your earning journey today.',
+          billboardEnabled: data.billboardEnabled !== undefined ? data.billboardEnabled : true,
+          referralBonusText: data.referralBonusText !== undefined ? data.referralBonusText : "Invite friends and earn rewards!\n\n• 50 Active Referrals = 100 TRX Bonus\n• 100 Active Referrals = 200 TRX Bonus\n• 500 Active Referrals = 1,000 TRX Bonus\n\n*Note: Active referrals mean your friends must make a deposit.",
+          depositBonusText: data.depositBonusText !== undefined ? data.depositBonusText : "Top up your account to unlock additional TRX Rewards tailored for new members.\n\n• Deposit 100 TRX = 10% Bonus\n• Deposit 500 TRX = 15% Bonus\n• Deposit 1000+ TRX = 20% Bonus",
         });
       }
     });
@@ -160,7 +172,7 @@ export const store = {
           if (!snap.exists()) {
              console.log("Seeding Database...");
              await setDoc(doc(db, 'config', 'system'), { 
-                supportLink: 'https://t.me/easyearning_support', 
+                supportLink: 'https://t.me/trxhub_support', 
                 systemBalance: 0,
                 vipLevels: VIP_LEVELS,
                 stakeSettings: { interestRate: 2, minStake: 200, maxStake: 4000 }
@@ -300,11 +312,16 @@ export const store = {
     const state = store.getState();
     updateLocalState({ ...state, ...settings });
     try {
-      const { supportLink, systemBalance, stakeSettings } = settings;
+      const { supportLink, systemBalance, stakeSettings, banners, billboardText, billboardEnabled, referralBonusText, depositBonusText } = settings;
       const updates: any = {};
       if (supportLink !== undefined) updates.supportLink = supportLink;
       if (systemBalance !== undefined) updates.systemBalance = systemBalance;
       if (stakeSettings !== undefined) updates.stakeSettings = stakeSettings;
+      if (banners !== undefined) updates.banners = banners;
+      if (billboardText !== undefined) updates.billboardText = billboardText;
+      if (billboardEnabled !== undefined) updates.billboardEnabled = billboardEnabled;
+      if (referralBonusText !== undefined) updates.referralBonusText = referralBonusText;
+      if (depositBonusText !== undefined) updates.depositBonusText = depositBonusText;
       await setDoc(doc(db, 'config', 'system'), updates, { merge: true });
     } catch (e) { console.error("Error updating config", e); }
   },

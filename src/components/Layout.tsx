@@ -36,11 +36,9 @@ export function AppLayout() {
 
       {/* Top Header */}
       <header className="sticky top-7 z-40 bg-[var(--color-bg-card)]/80 backdrop-blur-md border-b border-[var(--color-border-card)] px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-brand-primary to-brand-gold flex items-center justify-center font-bold text-black drop-shadow-[0_0_8px_rgba(255,90,0,0.5)]">
-            TRX
-          </div>
-          <span className="font-bold text-lg text-white">Easy Earning</span>
+        <div className="flex items-center gap-3">
+          <img src="/trx-logo.svg" alt="TRX Hub Logo" className="w-8 h-8 rounded-full" />
+          <span className="font-bold text-lg text-white">TRX Hub</span>
         </div>
         <div className="flex items-center gap-3">
            <div className="text-right">

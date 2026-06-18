@@ -30,6 +30,11 @@ export default function AdminDashboard() {
   const [editingMethod, setEditingMethod] = useState<any | null>(null);
   const [isAddingMethod, setIsAddingMethod] = useState(false);
   const [methodForm, setMethodForm] = useState({ name: '', network: '', address: '' });
+  const [banners, setBanners] = useState<string[]>([]);
+  const [billboardText, setBillboardText] = useState('');
+  const [billboardEnabled, setBillboardEnabled] = useState(true);
+  const [referralBonusText, setReferralBonusText] = useState('');
+  const [depositBonusText, setDepositBonusText] = useState('');
 
   const refreshData = () => {
     const state = store.getState();
@@ -40,6 +45,11 @@ export default function AdminDashboard() {
     setStakeSettings(state.stakeSettings || { interestRate: 90, minStake: 200, maxStake: 4000 });
     setVipLevels(state.vipLevels || []);
     setPaymentMethods(state.paymentMethods || []);
+    setBanners(state.banners || []);
+    setBillboardText(state.billboardText !== undefined ? state.billboardText : 'Welcome to TRX Hub! Start your earning journey today.');
+    setBillboardEnabled(state.billboardEnabled !== undefined ? state.billboardEnabled : true);
+    setReferralBonusText(state.referralBonusText !== undefined ? state.referralBonusText : "Invite friends and earn rewards!\n\n• 50 Active Referrals = 100 TRX Bonus\n• 100 Active Referrals = 200 TRX Bonus\n• 500 Active Referrals = 1,000 TRX Bonus\n\n*Note: Active referrals mean your friends must make a deposit.");
+    setDepositBonusText(state.depositBonusText !== undefined ? state.depositBonusText : "Top up your account to unlock additional TRX Rewards tailored for new members.\n\n• Deposit 100 TRX = 10% Bonus\n• Deposit 500 TRX = 15% Bonus\n• Deposit 1000+ TRX = 20% Bonus");
   };
 
   useEffect(() => {
@@ -461,9 +471,43 @@ export default function AdminDashboard() {
                 </div>
               </div>
 
+              <div className="pt-4 border-t border-[var(--color-border-card)]">
+                <div className="flex items-center justify-between mb-3">
+                   <h3 className="font-bold text-brand-gold">Home Update News Billboard</h3>
+                   <button 
+                     onClick={() => setBillboardEnabled(!billboardEnabled)}
+                     className={`text-xs px-3 py-1 rounded-lg font-bold ${billboardEnabled ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'}`}
+                   >
+                     {billboardEnabled ? 'Visible' : 'Hidden'}
+                   </button>
+                </div>
+                <textarea 
+                  value={billboardText} 
+                  onChange={(e) => setBillboardText(e.target.value)} 
+                  placeholder="Enter update news or messages to show on the Home page"
+                  className="w-full bg-[var(--color-bg-base)] border border-[var(--color-border-card)] rounded-xl py-3 px-4 text-white resize-none h-24 mb-4" 
+                />
+                
+                <h3 className="font-bold text-brand-primary mb-2">Referral Bonus Content</h3>
+                <textarea 
+                  value={referralBonusText} 
+                  onChange={(e) => setReferralBonusText(e.target.value)} 
+                  placeholder="Enter referral bonus text (e.g. 50 active refs = 100 TRX)"
+                  className="w-full bg-[var(--color-bg-base)] border border-[var(--color-border-card)] rounded-xl py-3 px-4 text-white resize-none h-28 mb-4" 
+                />
+
+                <h3 className="font-bold text-green-500 mb-2">Deposit Bonus Content</h3>
+                <textarea 
+                  value={depositBonusText} 
+                  onChange={(e) => setDepositBonusText(e.target.value)} 
+                  placeholder="Enter deposit bonus text (e.g. Deposit 100 TRX = 10% bonus)"
+                  className="w-full bg-[var(--color-bg-base)] border border-[var(--color-border-card)] rounded-xl py-3 px-4 text-white resize-none h-28" 
+                />
+              </div>
+
               <button 
                 onClick={() => {
-                  store.updateSystemSettings({ supportLink, stakeSettings });
+                  store.updateSystemSettings({ supportLink, stakeSettings, banners, billboardText, billboardEnabled, referralBonusText, depositBonusText });
                   alert('Settings saved!');
                 }} 
                 className="px-6 py-3 bg-brand-primary text-white font-bold rounded-xl hover:bg-brand-primary/80 transition-colors"

@@ -89,7 +89,7 @@ export default function VIP() {
        )}
 
        <div className="space-y-4">
-         {vipLevelsInfo.slice(1).map((vip, i) => {
+         {vipLevelsInfo.map((vip, i) => {
            const isCurrent = user?.vipLevel === vip.level;
            const isLocked = (user?.vipLevel || 0) >= vip.level;
 

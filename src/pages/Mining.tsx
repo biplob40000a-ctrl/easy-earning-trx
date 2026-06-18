@@ -46,11 +46,6 @@ export default function Mining() {
 
   const checkMiningStatus = () => {
     if (!user) return;
-    
-    if (user.vipLevel === 0) {
-      setStatus('upgrade');
-      return;
-    }
 
     if (!user.lastMiningDate) {
       setStatus('idle');

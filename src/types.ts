@@ -100,4 +100,9 @@ export interface AppState {
   paymentMethods?: PaymentMethod[];
   stakes?: StakeRecord[];
   stakeSettings?: { interestRate: number; minStake: number; maxStake: number };
+  banners?: string[];
+  billboardText?: string;
+  billboardEnabled?: boolean;
+  referralBonusText?: string;
+  depositBonusText?: string;
 }

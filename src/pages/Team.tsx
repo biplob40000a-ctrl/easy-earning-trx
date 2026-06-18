@@ -16,7 +16,7 @@ export default function Team() {
     return () => window.removeEventListener('store_updated', handleUpdate);
   }, []);
 
-  const _origin = typeof window !== 'undefined' ? window.location.origin : 'https://easyearning.com';
+  const _origin = typeof window !== 'undefined' ? window.location.origin : 'https://trxhub.com';
   const refLink = `${_origin}/register?ref=${user?.username}`;
 
   const copyRef = () => {

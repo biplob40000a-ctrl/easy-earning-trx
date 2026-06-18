@@ -33,14 +33,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const snapshot = await getDoc(docRef);
         if (snapshot.exists()) {
            const userData = snapshot.data() as AppUser;
-           if ((firebaseUser.email === 'biplob40000a@gmail.com' || firebaseUser.email === 'admin@easyearning.com') && userData.role !== 'admin') {
+           if ((firebaseUser.email === 'biplob40000a@gmail.com' || firebaseUser.email === 'admin@trxhub.com') && userData.role !== 'admin') {
              userData.role = 'admin';
              await setDoc(docRef, { role: 'admin' }, { merge: true });
            }
            setUser(userData);
         } else {
            // If user exists in Auth but not in Firestore
-           if (firebaseUser.email === 'biplob40000a@gmail.com' || firebaseUser.email === 'admin@easyearning.com') {
+           if (firebaseUser.email === 'biplob40000a@gmail.com' || firebaseUser.email === 'admin@trxhub.com') {
              const adminUser: AppUser = {
                id: firebaseUser.uid,
                email: firebaseUser.email || '',
@@ -102,7 +102,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const snapshot = await getDoc(doc(db, 'users', cred.user.uid));
       if (snapshot.exists()) {
         let userData = snapshot.data() as AppUser;
-        const isAdminEmail = email.toLowerCase() === 'biplob40000a@gmail.com' || email.toLowerCase() === 'admin@easyearning.com';
+        const isAdminEmail = email.toLowerCase() === 'biplob40000a@gmail.com' || email.toLowerCase() === 'admin@trxhub.com';
         
         if (isAdminEmail && userData.role !== 'admin') {
           userData = { ...userData, role: 'admin' };
@@ -148,7 +148,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
            }
         }
 
-        const isAdminEmail = email === 'biplob40000a@gmail.com' || email === 'admin@easyearning.com';
+        const isAdminEmail = email === 'biplob40000a@gmail.com' || email === 'admin@trxhub.com';
         
         const newUser: AppUser = {
           id: uid,

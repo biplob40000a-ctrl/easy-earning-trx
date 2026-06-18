@@ -10,7 +10,7 @@ async function startServer() {
 
   // API Routes for secure operations will go here
   app.get("/api/health", (req, res) => {
-    res.json({ status: "ok", message: "Easy Earning Secure Server is running" });
+    res.json({ status: "ok", message: "TRX Hub Secure Server is running" });
   });
 
   // Vite middleware for development
